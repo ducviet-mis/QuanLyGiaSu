@@ -60,6 +60,7 @@ Hướng dẫn SQL nâng cấp, cấu hình email, RLS, Storage và kiểm tra h
 
 ## Chức năng đã triển khai
 
+- **Logo web và PWA:** biểu tượng sách/chữ T theo mẫu đã chọn, SVG sạch nền cho sidebar, đăng nhập và mobile; favicon, icon Android 192/512 px, icon maskable và Apple Touch Icon 180 px. Nếu ứng dụng đã thêm vào màn hình chính vẫn giữ icon cũ, hãy thêm lại sau khi bản deploy mới hoàn tất.
 - **Tài khoản:** đăng ký bằng email, xác nhận/gửi lại email, đăng nhập, quên mật khẩu và đặt mật khẩu mới; mỗi tài khoản có kho riêng.
 - **Tổng quan:** KPI từ dữ liệu thực, buổi hôm nay, lịch sắp tới, biểu đồ học phí phát sinh và tiền đã nhận, thao tác nhanh.
 - **Học sinh:** thêm/sửa thông tin, avatar, đơn giá theo giờ hoặc buổi, tìm kiếm và lọc trạng thái; hồ sơ có lịch sử học, nhật ký, mục tiêu và học phí. Chuyển trạng thái kết thúc vẫn giữ lịch sử.

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowLeft, BookOpen, Check, Eye, EyeOff, KeyRound, Mail, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Check, Eye, EyeOff, KeyRound, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/ui';
+import BrandLogo from '../components/BrandLogo';
 
 export type AuthPageProps = {
   mode: 'login' | 'recovery';
@@ -163,13 +164,13 @@ export default function AuthPage({ mode, initialError, signIn, signUp, requestPa
 
   return <main className="login-page auth-page">
     <aside className="login-story auth-story" aria-label="TutorSpace">
-      <a className="brand" href="/"><span className="brand-icon"><BookOpen size={24} aria-hidden="true" /></span>TutorSpace<span className="brand-dot">.</span></a>
+      <a className="brand" href="/"><BrandLogo/></a>
       <div className="auth-story-copy"><span className="eyebrow">KHÔNG GIAN GIA SƯ CÁ NHÂN</span><h2>Dành tâm huyết<br />cho việc dạy học.</h2><p>Lịch dạy, học sinh và học phí.<br />Mọi thứ ở cùng một nơi.</p><div className="auth-story-note"><ShieldCheck size={21} aria-hidden="true" /><span><strong>Một tài khoản. Một không gian riêng.</strong><small>Dữ liệu của bạn được quản lý riêng với các tài khoản khác.</small></span></div></div>
       <div className="login-footer">TutorSpace · Một không gian, mọi việc dạy học.</div>
     </aside>
     <div className="login-form-wrap auth-form-wrap">
       <section className="login-form auth-form" aria-labelledby="auth-title">
-        <div className={`login-logo ${notice ? 'auth-notice-icon' : ''}`}>{recovery ? passwordUpdated ? <Check size={28} aria-hidden="true" /> : <KeyRound size={26} aria-hidden="true" /> : view === 'confirmation' || view === 'forgot' ? <Mail size={27} aria-hidden="true" /> : <BookOpen size={28} aria-hidden="true" />}</div>
+        <div className={`login-logo ${notice ? 'auth-notice-icon' : ''} ${!recovery && (view === 'login' || view === 'signup') ? 'login-brand-logo' : ''}`}>{recovery ? passwordUpdated ? <Check size={28} aria-hidden="true" /> : <KeyRound size={26} aria-hidden="true" /> : view === 'confirmation' || view === 'forgot' ? <Mail size={27} aria-hidden="true" /> : <BrandLogo size={48} showName={false}/>}</div>
         <header className="auth-heading"><h1 id="auth-title" ref={headingRef} tabIndex={-1}>{title}</h1><p>{description}</p></header>
         {!recovery && (view === 'login' || view === 'signup') && <nav className="auth-switch" aria-label="Tài khoản"><button type="button" disabled={busy} aria-pressed={view === 'login'} onClick={() => navigate('login')}>Đăng nhập</button><button type="button" disabled={busy} aria-pressed={view === 'signup'} onClick={() => navigate('signup')}>Tạo tài khoản</button></nav>}
         {notice ? <>
