@@ -65,7 +65,7 @@ Hướng dẫn SQL nâng cấp, cấu hình email, RLS, Storage và kiểm tra h
 - **Học sinh:** thêm/sửa thông tin, avatar, đơn giá theo giờ hoặc buổi, tìm kiếm và lọc trạng thái; hồ sơ có lịch sử học, nhật ký, mục tiêu và học phí. Chuyển trạng thái kết thúc vẫn giữ lịch sử.
 - **Lịch dạy:** mặc định 30 ngày từ hôm nay, xem theo tháng hoặc danh sách, chọn ngày và lọc; tạo/sửa buổi, lịch lặp tuần, chỉnh riêng buổi hoặc cả chuỗi, hủy và dời lịch; cho phép nhiều học sinh học cùng khung giờ và giữ từng buổi, học phí riêng.
 - **Nhật ký:** xác nhận thời lượng thực tế, kiến thức, thái độ, mức tiếp thu, bài tập và kế hoạch buổi tiếp theo. Chỉ buổi hoàn thành được tính phí mặc định; có thể đặt ngoại lệ tính phí rõ ràng.
-- **Hóa đơn:** tổng hợp học sinh/tháng, đơn giá và thời lượng, chỉnh bản nháp, phụ thu/giảm trừ có lý do, nhận xét, xem trước, phát hành và tải ảnh PNG. Hóa đơn là phiếu thông báo học phí cá nhân, không phải hóa đơn VAT.
+- **Hóa đơn:** tổng hợp học sinh/tháng; phiếu gọn với số buổi, ngày học và đơn giá chung một lần; chỉnh bản nháp, phụ thu/giảm trừ có lý do, nhận xét, xem trước, phát hành và tải ảnh PNG. Hóa đơn là phiếu thông báo học phí cá nhân, không phải hóa đơn VAT.
 - **QR thủ công:** upload ảnh có sẵn, xem trước, thay/xóa ảnh; giữ nguyên tỷ lệ trong hóa đơn và ảnh xuất. Không gọi VietQR hoặc tự tạo mã chuyển khoản.
 - **Thanh toán:** ghi nhận tiền và ngày thực nhận, thanh toán từng phần, số còn thiếu và trạng thái tự cập nhật; ngăn ghi nhận vượt số tiền còn lại hoặc vào bản nháp.
 - **Thống kê:** bộ lọc tháng/năm, học phí phát sinh, tiền thực nhận, giờ/buổi hoàn thành, tổng hợp theo học sinh và công nợ. Phát hành hóa đơn không tự ghi nhận đã thu tiền.

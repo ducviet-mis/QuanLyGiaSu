@@ -71,3 +71,11 @@ Email xác nhận, SMTP, phiên đăng nhập từ liên kết email, đặt l�
 - Qua giao diện production dùng IndexedDB thử riêng: tạo Nguyễn Minh Anh ngày 01/11/2026 lúc 18:00–19:30; tạo bốn buổi Chủ nhật cho Trần Gia Huy từ 01/11 đến 22/11 cùng khung giờ. Cả hai buổi ngày 01/11 đều được lưu và hiển thị.
 - Sửa toàn bộ chuỗi của Trần Gia Huy thành 18:00–20:00, tải lại trang và đối chiếu ngày 01/11, 08/11: các buổi giữ giờ mới, buổi của Nguyễn Minh Anh giữ giờ cũ. Ảnh minh chứng: `outputs/tutorspace-overlapping-lessons.png` trong thư mục bàn giao.
 - Không thay đổi SQL: schema hiện tại không cấm hai học sinh có buổi học trùng giờ. Kiểm tra giao diện này chưa chạy trên Supabase/Vercel thật.
+
+## Phiếu học phí gọn — 02/10/2026
+
+- Bản xem trước và PNG thay bảng từng buổi bằng số buổi, các ngày học theo thứ tự và đơn giá chung một lần khi các buổi có cùng giá, hình thức tính và không điều chỉnh thành tiền. Ngày có nhiều buổi được ghi rõ số buổi; học phí theo giờ có tổng thời lượng.
+- Tổng tiền tiếp tục cộng thành tiền đã lưu của từng buổi, giữ phụ thu, giảm trừ, lý do điều chỉnh, nhận xét và thông tin thanh toán. Mức phí khác nhau hoặc buổi điều chỉnh không bị mô tả bằng một đơn giá chung sai.
+- `npm test`: 42/42 đạt. `npm run build`: đạt. Bảy kiểm tra SSR tạm trên component thực đạt: chín buổi cùng giá, làm tròn học phí theo giờ từng buổi, giá/đơn vị khác nhau, điều chỉnh, ngày có nhiều buổi, ngày ngoài kỳ và bản nháp trống.
+- Giao diện production trên IndexedDB thử riêng: mở phiếu mẫu có chín buổi tháng 9/2026, 150.000đ/buổi, tổng 1.350.000đ. Bản xem trước và PNG hiển thị đủ chín ngày trên một dòng; PNG đã giải mã thành công 1520 × 2728 px, khoảng 300,1 KB, có nhận xét, ảnh thanh toán thử tỷ lệ 2:3 và toàn bộ chân trang. Ảnh đối chiếu: `outputs/tutorspace-compact-invoice.png` và `outputs/tutorspace-compact-invoice-footer.png` trong thư mục bàn giao.
+- Trình duyệt nhúng chưa xác nhận lưu file PNG vào Downloads; ảnh được tạo và hiển thị đầy đủ. Kích thước trang thực tế vẫn 1280 px sau yêu cầu đổi viewport nên lần này không ghi nhận kiểm tra điện thoại mới. Không thay đổi dữ liệu, SQL hay dự án Supabase/Vercel thật.

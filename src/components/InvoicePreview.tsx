@@ -1,7 +1,8 @@
-import { forwardRef } from 'react';
+import { Fragment, forwardRef } from 'react';
 import { toBlob, getFontEmbedCSS } from 'html-to-image';
 import type { Invoice } from '../types';
 import { tuitionTotal, exportInvoiceFilename } from '../invoice-engine';
+import { lessonAmount } from '../domain';
 
 const vnd = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
 const dateLabel = (value: string) => value.split('-').reverse().join('/');
@@ -12,14 +13,24 @@ export const InvoicePreview = forwardRef<HTMLDivElement, { invoice: Invoice }>(f
   const [year, month] = invoice.month.split('-');
   const { snapshot } = invoice;
   const total = tuitionTotal(invoice);
+  const minutes = invoice.items.reduce((sum, item) => sum + item.minutes, 0);
+  const firstItem = invoice.items[0];
+  const commonRate = firstItem && invoice.items.every(item => item.rate === firstItem.rate && item.rateType === firstItem.rateType && item.amount === lessonAmount(item.rate, item.minutes, item.rateType)) ? firstItem : null;
+  const dateCounts = new Map<string, number>();
+  invoice.items.forEach(item => dateCounts.set(item.date, (dateCounts.get(item.date) || 0) + 1));
+  const lessonDates = [...dateCounts.entries()].sort(([a], [b]) => a.localeCompare(b));
   const bankReady = snapshot.bankName || snapshot.bankAccount || snapshot.bankHolder;
   const transferNote = `Học phí ${snapshot.studentName} ${Number(month)}/${year}`;
   return <div ref={ref} className="invoice-paper" aria-label={`Phiếu học phí ${snapshot.studentName}, tháng ${Number(month)}/${year}`}>
     <div className="invoice-topline"><span>{snapshot.brand || 'TutorSpace'}</span><span>THÁNG {Number(month)} / {year}</span></div>
     <div className="invoice-paper-header"><div><div className="invoice-en-title">TUITION INVOICE</div><h2>Phiếu thông báo<br />học phí</h2><p>{snapshot.tutorName || 'Gia sư cá nhân'}</p></div><div className="invoice-code"><span>MÃ PHIẾU</span><strong>{invoice.code}</strong><span>{invoice.issuedAt ? `Phát hành ${issueDateLabel(invoice.issuedAt)}` : 'Bản xem trước'}</span></div></div>
     <div className="invoice-student-block"><div><span>HỌC SINH</span><h3>{snapshot.studentName}</h3></div><div><span>LỚP • MÔN HỌC</span><strong>{[snapshot.grade, snapshot.subject].filter(Boolean).join(' • ') || '—'}</strong></div><div><span>KỲ HỌC PHÍ</span><strong>Tháng {Number(month)}/{year}</strong></div></div>
-    <section className="invoice-paper-section"><h3><span>01</span> Chi tiết học phí</h3><table className="invoice-paper-table"><thead><tr><th>Ngày học / Nội dung</th><th>Thời lượng</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>{invoice.items.map(item => <tr key={item.id}><td><strong>{dateLabel(item.date)}</strong>{item.description && <small>{item.description}</small>}</td><td>{duration(item.minutes)}</td><td>{vnd(item.rate)}<small>/{item.rateType === 'hour' ? 'giờ' : 'buổi'}</small></td><td>{vnd(item.amount)}</td></tr>)}</tbody></table>
-      <div className="invoice-subtotal"><span>{invoice.items.length} buổi học • {duration(invoice.items.reduce((sum, item) => sum + item.minutes, 0))}</span><div><p><span>Học phí các buổi</span><strong>{vnd(invoice.items.reduce((sum, item) => sum + item.amount, 0))}</strong></p>{invoice.surcharge > 0 && <p><span>Phụ thu</span><strong>+{vnd(invoice.surcharge)}</strong></p>}{invoice.discount > 0 && <p><span>Giảm trừ</span><strong>−{vnd(invoice.discount)}</strong></p>}</div></div>
+    <section className="invoice-paper-section"><h3><span>01</span> Tổng hợp học phí</h3>
+      <div className="invoice-lesson-summary">
+        <div className="invoice-lesson-summary-top"><div><strong>{invoice.items.length} buổi học</strong>{invoice.items.some(item => item.rateType === 'hour') && <span>{duration(minutes)} tổng thời lượng</span>}</div>{commonRate && <div className="invoice-common-rate"><span>Đơn giá</span><strong>{vnd(commonRate.rate)}<small>/{commonRate.rateType === 'hour' ? 'giờ' : 'buổi'}</small></strong></div>}</div>
+        <div className="invoice-lesson-dates"><span>Ngày học</span><p>{lessonDates.map(([date, count], index) => <Fragment key={date}><span><time dateTime={date}>{date.startsWith(invoice.month + '-') ? dateLabel(date).slice(0, 5) : dateLabel(date)}</time>{count > 1 && ` (${count} buổi)`}</span>{index < lessonDates.length - 1 && ', '}</Fragment>)}</p></div>
+      </div>
+      {(invoice.surcharge > 0 || invoice.discount > 0) && <div className="invoice-subtotal"><div><p><span>Học phí các buổi</span><strong>{vnd(invoice.items.reduce((sum, item) => sum + item.amount, 0))}</strong></p>{invoice.surcharge > 0 && <p><span>Phụ thu</span><strong>+{vnd(invoice.surcharge)}</strong></p>}{invoice.discount > 0 && <p><span>Giảm trừ</span><strong>−{vnd(invoice.discount)}</strong></p>}</div></div>}
       {invoice.adjustmentNote && <p className="invoice-adjustment">Điều chỉnh: {invoice.adjustmentNote}</p>}
       <div className="invoice-grand-total"><span>TỔNG HỌC PHÍ</span><strong>{vnd(total)}</strong></div>
     </section>
