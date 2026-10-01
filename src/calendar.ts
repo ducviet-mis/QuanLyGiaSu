@@ -8,14 +8,13 @@ export function minutesBetween(start:string,end:string) { const [a,b]=start.spli
 export function weeklyDates(start:string,end:string,days:number[]) { const output:string[]=[]; if(!start||!end||end<start||!days.length) return output; let count=0; for(let day=start;day<=end&&count<732;day=shiftDate(day,1),count++) { if(days.includes(dateObject(day).getDay())) output.push(day); } return output; }
 export function sameSlot(a:Pick<TeachingSession,'studentId'|'date'|'startTime'|'endTime'>,b:Pick<TeachingSession,'studentId'|'date'|'startTime'|'endTime'>) { return a.studentId===b.studentId&&a.date===b.date&&a.startTime===b.startTime&&a.endTime===b.endTime; }
 export function sessionAlreadyRetained(candidate:TeachingSession,retained:TeachingSession[]) { return retained.some(s=>sameSlot(candidate,s)||(Boolean(candidate.scheduleId)&&candidate.scheduleId===s.scheduleId&&candidate.date===s.date)); }
-export function validateSessionConflicts(candidates:TeachingSession[],existing:TeachingSession[]) {
-  const occupied=existing.filter(s=>!['cancelled','student_absent','teacher_absent'].includes(s.status));
-  for(const candidate of candidates) {
-    if(['cancelled','student_absent','teacher_absent'].includes(candidate.status)) continue;
-    const conflict=occupied.find(s=>s.id!==candidate.id&&s.date===candidate.date&&s.startTime<candidate.endTime&&s.endTime>candidate.startTime);
-    if(conflict) throw new Error(`Trùng lịch ngày ${candidate.date.split('-').reverse().join('/')} với buổi ${conflict.startTime}–${conflict.endTime}. Hãy chọn khung giờ khác.`);
-    occupied.push(candidate);
-  }
+export function prepareSessionCandidates(candidates:TeachingSession[],retained:TeachingSession[],recurring:boolean) {
+  // Simultaneous lessons are allowed. Skip only a student's retained duplicate
+  // or a protected date in the same recurring series.
+  const unique=candidates.filter(candidate=>!sessionAlreadyRetained(candidate,retained));
+  if(!unique.length)throw new Error('Các buổi của học sinh này trong khoảng đã tồn tại. Không cần tạo lại.');
+  if(!recurring&&unique.length!==candidates.length)throw new Error('Học sinh đã có một buổi vào khung giờ này.');
+  return unique;
 }
 export function seriesEditableSessions(sessions:TeachingSession[],scheduleId:string,fromDate:string,protectedIds:string[]=[]) { return sessions.filter(s=>s.scheduleId===scheduleId&&s.date>=fromDate&&s.status!=='completed'&&!protectedIds.includes(s.id)); }
 export function cancelSessionScope(sessions:TeachingSession[],targetId:string,allFuture:boolean,fromDate:string) {

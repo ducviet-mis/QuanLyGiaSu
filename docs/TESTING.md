@@ -63,3 +63,11 @@ Email xác nhận, SMTP, phiên đăng nhập từ liên kết email, đặt l�
 - Lịch nhỏ tính đủ bốn, năm hoặc sáu tuần theo tháng.
 - Xuất PNG chờ font, ảnh được giải mã và toàn bộ chiều cao; có giới hạn chờ và thông báo lỗi; hiển thị bitmap trước khi tải.
 - Ảnh cloud được gộp theo SHA-256, kiểm tra quyền/định dạng/kích thước và giữ nội dung ảnh của hóa đơn cũ.
+
+## Cho phép các buổi học trùng giờ — 02/10/2026
+
+- `npm test`: 42/42 kiểm tra đạt; gồm tạo buổi cùng giờ, trùng một phần, lịch lặp cho học sinh khác, sửa cả chuỗi và giữ buổi lịch sử. Buổi giống hệt của cùng học sinh vẫn được bỏ qua để tránh tạo lại.
+- `npm run build`: TypeScript và bản dựng production đạt.
+- Qua giao diện production dùng IndexedDB thử riêng: tạo Nguyễn Minh Anh ngày 01/11/2026 lúc 18:00–19:30; tạo bốn buổi Chủ nhật cho Trần Gia Huy từ 01/11 đến 22/11 cùng khung giờ. Cả hai buổi ngày 01/11 đều được lưu và hiển thị.
+- Sửa toàn bộ chuỗi của Trần Gia Huy thành 18:00–20:00, tải lại trang và đối chiếu ngày 01/11, 08/11: các buổi giữ giờ mới, buổi của Nguyễn Minh Anh giữ giờ cũ. Ảnh minh chứng: `outputs/tutorspace-overlapping-lessons.png` trong thư mục bàn giao.
+- Không thay đổi SQL: schema hiện tại không cấm hai học sinh có buổi học trùng giờ. Kiểm tra giao diện này chưa chạy trên Supabase/Vercel thật.
