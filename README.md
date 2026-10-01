@@ -87,6 +87,7 @@ Kiểm thử đơn vị bao phủ tiền học, ngoại lệ tính phí, lịch 
 
 - Nhắc lịch bằng Browser Notifications chỉ hoạt động khi ứng dụng đang mở và trình duyệt đã được cấp quyền. Chưa có push nền, SMS hoặc Zalo tự động.
 - Thanh toán cập nhật thủ công; không kết nối ngân hàng hoặc đối soát giao dịch tự động.
+- Trên điện thoại, mỗi phiếu có nút **Tải ảnh**. Khi PNG sẵn sàng, chọn **Tải ảnh về máy**, hoặc **Lưu / chia sẻ ảnh** trên trình duyệt hỗ trợ chia sẻ tệp. Nếu cần, nhấn giữ ảnh rồi chọn lưu hình ảnh. Chia sẻ sử dụng ảnh đã tạo và chỉ mở bảng chọn của thiết bị; người dùng quyết định nơi lưu hoặc gửi.
 - Ảnh PNG/JPEG/WEBP tối đa 2 MB, kích thước tối đa 6.000 × 6.000 pixel. Tệp nhập sao lưu tối đa 100 MB; mỗi lần đồng bộ cloud tối đa 50 MB sau khi gộp ảnh trùng.
 - Có manifest hỗ trợ mở từ màn hình chính tùy trình duyệt. Chưa có service worker hoặc chế độ làm việc offline cho kho cloud.
 - Cấu hình Auth, RLS và Storage trên Supabase thật, triển khai Vercel và kiểm tra trên thiết bị iPhone thật cần được thực hiện sau khi kết nối tài khoản của bạn.

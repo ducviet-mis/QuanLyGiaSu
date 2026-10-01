@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowDownToLine, ArrowUpRight, Banknote, BookOpen, CheckCircle2, ChevronDown, ClipboardList, FilePlus2, FileText, Pencil, Plus, RefreshCw, Search, Send, ShieldCheck, Trash2 } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpRight, Banknote, BookOpen, CheckCircle2, ChevronDown, ClipboardList, FilePlus2, FileText, Pencil, Plus, RefreshCw, Search, Send, Share2, ShieldCheck, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWorkspace } from '../store';
 import { currentMonth, formatDate, invoicePaid, invoiceRemaining, invoiceStatus, invoiceTotal, money, newId, sessionCharge, sessionMinutes, today } from '../domain';
 import { eligibleInvoiceSessions, invoiceSnapshot, invoiceValidation, issueValidation, paymentValidation, withAdjustedItem } from '../invoice-engine';
 import { InvoicePreview, exportInvoicePNG, type GeneratedInvoicePNG } from '../components/InvoicePreview';
+import { canShareInvoiceImage, shareInvoiceImage } from '../data/invoice-image-share';
 import { Avatar, Button, ConfirmDialog, EmptyState, Field, Modal, PageHeading, StatusBadge } from '../components/ui';
 import type { Invoice, InvoiceItem, WorkspaceData } from '../types';
 import '../invoices.css';
@@ -34,11 +35,21 @@ export default function Invoices() {
   const [active, setActive] = useState<Invoice | null>(null); const [editing, setEditing] = useState(false); const [previewOnly, setPreviewOnly] = useState(false); const [dirty, setDirty] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmAction>(null); const [formError, setFormError] = useState(''); const [exporting, setExporting] = useState(false);
   const [generatedPNG, setGeneratedPNG] = useState<GeneratedInvoicePNG | null>(null);
+  const [pendingPNG, setPendingPNG] = useState<string | null>(null);
+  const [sharingPNG, setSharingPNG] = useState(false); const [shareError, setShareError] = useState('');
   const [paymentOpen, setPaymentOpen] = useState(false); const [paymentAmount, setPaymentAmount] = useState(''); const [paymentDate, setPaymentDate] = useState(today); const [paymentNote, setPaymentNote] = useState(''); const [paymentError, setPaymentError] = useState('');
-  const paperRef = useRef<HTMLDivElement>(null);
+  const [paperNode, setPaperNode] = useState<HTMLDivElement | null>(null);
   const queryHandled = useRef('');
+  const imageExportRequest = useRef(0); const imageExportBusy = useRef(false);
 
   useEffect(() => { return () => { if (generatedPNG) URL.revokeObjectURL(generatedPNG.url); }; }, [generatedPNG]);
+  useEffect(() => () => { imageExportRequest.current++; }, []);
+  useEffect(() => { setShareError(''); }, [generatedPNG]);
+  useEffect(() => {
+    if (!pendingPNG || active?.id !== pendingPNG || !paperNode) return;
+    setPendingPNG(null);
+    void downloadPNG();
+  }, [pendingPNG, active?.id, paperNode]);
 
   useEffect(() => {
     const requestedInvoice = params.get('invoice');
@@ -79,7 +90,9 @@ export default function Invoices() {
     setStudentId(data.students.find(student => student.status === 'active')?.id || data.students[0]?.id || ''); setMonth(currentMonth()); setFormError(''); setCreateOpen(true);
   }
   function openInvoice(invoice: Invoice) { setActive({ ...structuredClone(invoice), snapshot: invoice.status === 'draft' ? invoiceSnapshot(data, invoice.studentId) : invoice.snapshot }); setEditing(false); setPreviewOnly(true); setDirty(false); setFormError(''); }
-  function closeInvoice() { if (dirty) { setConfirm('discard'); return; } setActive(null); setFormError(''); }
+  function openInvoiceImage(invoice: Invoice) { if (imageExportBusy.current || pendingPNG) return; openInvoice(invoice); setPendingPNG(invoice.id); }
+  function cancelImageExport() { imageExportRequest.current++; imageExportBusy.current = false; setPendingPNG(null); setExporting(false); }
+  function closeInvoice() { if (dirty) { setConfirm('discard'); return; } cancelImageExport(); setActive(null); setFormError(''); }
   function patchInvoice(patch: Partial<Invoice>) { if (!active) return; setActive({ ...active, ...patch }); setDirty(true); setFormError(''); }
   function createInvoice() {
     if (!studentId || !month || duplicate || !eligible.length) return;
@@ -106,13 +119,26 @@ export default function Invoices() {
     if (ok && persisted) { setActive(persisted); setDirty(false); if (issue || correct) { setEditing(false); setPreviewOnly(true); } }
   }
   async function downloadPNG() {
-    if (!active || !paperRef.current) return;
+    if (!active || !paperNode || imageExportBusy.current) return;
     const invalid = invoiceValidation(active);
     if (invalid) { setFormError(invalid); toast.error(invalid); return; }
-    setExporting(true);
-    try { setGeneratedPNG(await exportInvoicePNG(paperRef.current, active)); toast.success('Ảnh hóa đơn đã sẵn sàng để tải.'); }
-    catch (problem) { toast.error(problem instanceof Error ? problem.message : 'Không thể xuất ảnh. Vui lòng thử lại.'); }
-    finally { setExporting(false); }
+    const request = ++imageExportRequest.current;
+    imageExportBusy.current = true; setExporting(true);
+    try {
+      const image = await exportInvoicePNG(paperNode, active);
+      if (request !== imageExportRequest.current) { URL.revokeObjectURL(image.url); return; }
+      setGeneratedPNG(image); toast.success('Ảnh hóa đơn đã sẵn sàng để tải.');
+    } catch (problem) { if (request === imageExportRequest.current) toast.error(problem instanceof Error ? problem.message : 'Không thể xuất ảnh. Vui lòng thử lại.'); }
+    finally { if (request === imageExportRequest.current) { imageExportBusy.current = false; setExporting(false); } }
+  }
+  async function sharePNG() {
+    if (!generatedPNG || sharingPNG) return;
+    setShareError(''); setSharingPNG(true);
+    try {
+      const result = await shareInvoiceImage(generatedPNG.file);
+      if (result === 'unsupported') setShareError('Trình duyệt chưa hỗ trợ lưu qua bảng chia sẻ. Bạn có thể dùng Tải ảnh về máy hoặc nhấn giữ ảnh bên dưới.');
+    } catch { setShareError('Chưa mở được bảng chia sẻ. Hãy dùng Tải ảnh về máy hoặc nhấn giữ ảnh bên dưới để lưu.'); }
+    finally { setSharingPNG(false); }
   }
   function startPayment() { setPaymentAmount(String(remaining)); setPaymentDate(today()); setPaymentNote(''); setPaymentError(''); setPaymentOpen(true); }
   async function savePayment() {
@@ -134,8 +160,9 @@ export default function Invoices() {
     if (confirm === 'correct-save') { await saveInvoice(false, true); return; }
     if (confirm === 'correct-start') { setEditing(true); setPreviewOnly(false); setFormError(''); setConfirm(null); return; }
     if (confirm === 'refresh') { patchInvoice({ items: makeItems(data, active.studentId, active.month, active.id), snapshot: invoiceSnapshot(data, active.studentId) }); setConfirm(null); return; }
-    if (confirm === 'discard') { setConfirm(null); setActive(null); setDirty(false); return; }
+    if (confirm === 'discard') { cancelImageExport(); setConfirm(null); setActive(null); setDirty(false); return; }
     if (confirm === 'delete') {
+      cancelImageExport();
       const ok = await update(current => { const target = current.invoices.find(invoice => invoice.id === active.id); if (target?.status === 'issued') throw new Error('Không thể xóa hóa đơn đã phát hành.'); return { ...current, invoices: current.invoices.filter(invoice => invoice.id !== active.id) }; }, 'Đã xóa bản nháp.');
       setConfirm(null); if (ok) { setActive(null); setDirty(false); }
     }
@@ -154,7 +181,7 @@ export default function Invoices() {
     <div className="invoice-summary-grid"><div className="panel invoice-summary"><span className="invoice-summary-icon"><FileText size={20} /></span><div><span>Học phí đã phát hành</span><strong>{money(totalIssued)}</strong><small>{issued.length} hóa đơn trong kỳ đang xem</small></div></div><div className="panel invoice-summary"><span className="invoice-summary-icon received"><CheckCircle2 size={20} /></span><div><span>Đã thu</span><strong>{money(totalPaid)}</strong><small>Từ các khoản thanh toán đã ghi nhận</small></div></div><div className="panel invoice-summary"><span className="invoice-summary-icon outstanding"><Banknote size={20} /></span><div><span>Còn cần thu</span><strong>{money(totalRemaining)}</strong><small>{issued.filter(invoice => invoiceRemaining(invoice, data.payments) > 0).length} hóa đơn chưa thanh toán đủ</small></div></div></div>
     <section className="panel invoice-list-panel"><div className="invoice-list-top"><div><h2 className="section-title">Danh sách hóa đơn</h2><p className="muted">Bản nháp giúp bạn đối chiếu trước khi gửi phụ huynh.</p></div><div className="invoice-search-controls"><label className="invoice-search"><Search size={17} aria-hidden="true" /><input aria-label="Tìm hóa đơn theo học sinh hoặc mã phiếu" placeholder="Tìm học sinh, mã phiếu..." value={search} onChange={event => setSearch(event.target.value)} /></label><select aria-label="Lọc kỳ học phí" value={monthFilter} onChange={event => setMonthFilter(event.target.value)}><option value="all">Tất cả kỳ</option>{allMonths.map(value => <option key={value} value={value}>{monthLabel(value)}</option>)}</select></div></div>
       <div className="invoice-filter-tabs" role="group" aria-label="Lọc trạng thái hóa đơn">{(Object.keys(filterLabels) as InvoiceFilter[]).map(status => <button key={status} className={statusFilter === status ? 'selected' : ''} aria-pressed={statusFilter === status} onClick={() => setStatusFilter(status)}>{filterLabels[status]}<span>{status === 'all' ? scope.length : scope.filter(invoice => invoiceStatus(invoice, data.payments) === status).length}</span></button>)}</div>
-      {!visible.length ? <EmptyState icon={<FileText size={28} />} title={data.invoices.length ? 'Chưa có hóa đơn phù hợp' : 'Cuối tháng sẽ nhẹ nhàng hơn'} description={data.invoices.length ? 'Thử thay đổi tên học sinh, kỳ học phí hoặc trạng thái.' : 'Hoàn thành các buổi học rồi tạo phiếu học phí đầu tiên của bạn.'} action={data.invoices.length ? <Button onClick={() => { setSearch(''); setMonthFilter('all'); setStatusFilter('all'); }}>Xóa bộ lọc</Button> : <Button variant="primary" onClick={startNew}><FilePlus2 size={17} />Tạo hóa đơn đầu tiên</Button>} /> : <><div className="table-wrap invoice-desktop-table"><table className="data-table"><thead><tr><th>Học sinh</th><th>Mã phiếu / Kỳ</th><th>Học phí</th><th>Đã thu</th><th>Trạng thái</th><th><span className="invoice-sr-only">Thao tác</span></th></tr></thead><tbody>{visible.map(invoice => { const student = data.students.find(item => item.id === invoice.studentId); return <tr key={invoice.id}><td><div className="invoice-student-cell">{student && <Avatar student={{ ...student, name: invoice.snapshot.studentName }} />}<div><strong>{invoice.snapshot.studentName}</strong><small>{[invoice.snapshot.grade, invoice.snapshot.subject].filter(Boolean).join(' • ')}</small></div></div></td><td><strong className="invoice-table-code">{invoice.code}</strong><small>{monthLabel(invoice.month)}</small></td><td><strong>{money(invoiceTotal(invoice))}</strong><small>{invoice.items.length} buổi • {hoursLabel(invoice.items.reduce((sum, item) => sum + item.minutes, 0))}</small></td><td><strong>{money(invoicePaid(invoice, data.payments))}</strong>{invoice.status === 'issued' && invoiceRemaining(invoice, data.payments) > 0 && <small>Còn {money(invoiceRemaining(invoice, data.payments))}</small>}</td><td><StatusBadge status={invoiceStatus(invoice, data.payments)} /></td><td><Button variant="ghost" onClick={() => openInvoice(invoice)} aria-label={`Mở hóa đơn ${invoice.code}`}>Mở phiếu<ArrowUpRight size={16} /></Button></td></tr>; })}</tbody></table></div><div className="invoice-mobile-list">{visible.map(invoice => <article key={invoice.id}><div><strong>{invoice.snapshot.studentName}</strong><StatusBadge status={invoiceStatus(invoice, data.payments)} /></div><p>{invoice.code} · {monthLabel(invoice.month)}</p><div><span>Học phí<strong>{money(invoiceTotal(invoice))}</strong></span><span>Đã thu<strong>{money(invoicePaid(invoice, data.payments))}</strong></span></div><Button onClick={() => openInvoice(invoice)}>Mở phiếu<ArrowUpRight size={16} /></Button></article>)}</div><div className="invoice-list-footer"><span>{visible.length} hóa đơn</span><span><ShieldCheck size={15} />Số tiền đã thu luôn tính từ thanh toán thực tế</span></div></>}
+      {!visible.length ? <EmptyState icon={<FileText size={28} />} title={data.invoices.length ? 'Chưa có hóa đơn phù hợp' : 'Cuối tháng sẽ nhẹ nhàng hơn'} description={data.invoices.length ? 'Thử thay đổi tên học sinh, kỳ học phí hoặc trạng thái.' : 'Hoàn thành các buổi học rồi tạo phiếu học phí đầu tiên của bạn.'} action={data.invoices.length ? <Button onClick={() => { setSearch(''); setMonthFilter('all'); setStatusFilter('all'); }}>Xóa bộ lọc</Button> : <Button variant="primary" onClick={startNew}><FilePlus2 size={17} />Tạo hóa đơn đầu tiên</Button>} /> : <><div className="table-wrap invoice-desktop-table"><table className="data-table"><thead><tr><th>Học sinh</th><th>Mã phiếu / Kỳ</th><th>Học phí</th><th>Đã thu</th><th>Trạng thái</th><th><span className="invoice-sr-only">Thao tác</span></th></tr></thead><tbody>{visible.map(invoice => { const student = data.students.find(item => item.id === invoice.studentId); return <tr key={invoice.id}><td><div className="invoice-student-cell">{student && <Avatar student={{ ...student, name: invoice.snapshot.studentName }} />}<div><strong>{invoice.snapshot.studentName}</strong><small>{[invoice.snapshot.grade, invoice.snapshot.subject].filter(Boolean).join(' • ')}</small></div></div></td><td><strong className="invoice-table-code">{invoice.code}</strong><small>{monthLabel(invoice.month)}</small></td><td><strong>{money(invoiceTotal(invoice))}</strong><small>{invoice.items.length} buổi • {hoursLabel(invoice.items.reduce((sum, item) => sum + item.minutes, 0))}</small></td><td><strong>{money(invoicePaid(invoice, data.payments))}</strong>{invoice.status === 'issued' && invoiceRemaining(invoice, data.payments) > 0 && <small>Còn {money(invoiceRemaining(invoice, data.payments))}</small>}</td><td><StatusBadge status={invoiceStatus(invoice, data.payments)} /></td><td><Button variant="ghost" onClick={() => openInvoice(invoice)} aria-label={`Mở hóa đơn ${invoice.code}`}>Mở phiếu<ArrowUpRight size={16} /></Button></td></tr>; })}</tbody></table></div><div className="invoice-mobile-list">{visible.map(invoice => <article key={invoice.id}><div><strong>{invoice.snapshot.studentName}</strong><StatusBadge status={invoiceStatus(invoice, data.payments)} /></div><p>{invoice.code} · {monthLabel(invoice.month)}</p><div><span>Học phí<strong>{money(invoiceTotal(invoice))}</strong></span><span>Đã thu<strong>{money(invoicePaid(invoice, data.payments))}</strong></span></div><div className="invoice-mobile-actions"><Button onClick={() => openInvoice(invoice)}>Mở phiếu<ArrowUpRight size={16} /></Button><Button variant="primary" onClick={() => openInvoiceImage(invoice)} disabled={exporting || Boolean(pendingPNG)} loading={pendingPNG === invoice.id || (exporting && active?.id === invoice.id)} aria-label={`Tải ảnh học phí ${invoice.snapshot.studentName}, ${monthLabel(invoice.month)}`}><ArrowDownToLine size={17} aria-hidden="true" />Tải ảnh</Button></div></article>)}</div><div className="invoice-list-footer"><span>{visible.length} hóa đơn</span><span><ShieldCheck size={15} />Số tiền đã thu luôn tính từ thanh toán thực tế</span></div></>}
     </section>
 
     <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Tạo hóa đơn học phí" description="Chọn học sinh và kỳ học phí để tổng hợp các buổi được tính phí.">
@@ -174,17 +201,24 @@ export default function Invoices() {
           <details className="invoice-note-reference"><summary><BookOpen size={17} /><span>Tham khảo nhật ký buổi học ({notes.length})</span><ChevronDown size={16} /></summary>{notes.length ? <div>{notes.map(session => <article key={session.id}><strong>{formatDate(session.date)} · {session.subject}</strong>{Object.entries(session.lessonNote).map(([key, value]) => value && <p key={key}><span>{{ content: 'Nội dung', attitude: 'Thái độ', understanding: 'Tiếp thu', homework: 'Bài tập', nextPlan: 'Buổi tiếp theo' }[key]}:</span> {value}</p>)}{(session.lessonNote.attitude || session.lessonNote.understanding) && <Button variant="ghost" onClick={() => patchInvoice({ comment: [active.comment, [session.lessonNote.attitude, session.lessonNote.understanding].filter(Boolean).join(' ')].filter(Boolean).join('\n\n').slice(0, 20000) })}><Plus size={14} />Chèn nhận xét</Button>}</article>)}</div> : <p className="muted">Chưa có nhật ký trong kỳ này. Bạn vẫn có thể nhập nhận xét trực tiếp.</p>}</details>
           {!active.snapshot.bankAccount && <div className="invoice-callout"><Banknote size={18} /><div><strong>Chưa có thông tin nhận học phí</strong><p>Thiết lập tài khoản và tải ảnh QR của bạn trong <Link to="/settings">Cài đặt</Link>. Khi lưu bản nháp hoặc phát hành, phiếu sẽ lấy thông tin mới nhất.</p></div></div>}
         </div>}
-        <div className={`invoice-preview-scroll ${editing && !previewOnly ? 'invoice-preview-hidden' : ''}`}><InvoicePreview ref={paperRef} invoice={active} /></div>
+        <div className={`invoice-preview-scroll ${editing && !previewOnly ? 'invoice-preview-hidden' : ''}`}><InvoicePreview ref={setPaperNode} invoice={active} /></div>
         {!editing && activePayments.length > 0 && <div className="invoice-payment-history"><h3>Lịch sử thanh toán</h3>{activePayments.map(payment => <div key={payment.id}><span><strong>{formatDate(payment.date)}</strong><small>{payment.note || 'Ghi nhận thanh toán'}</small></span><strong>{money(payment.amount)}</strong></div>)}</div>}
-        <div className="modal-footer invoice-editor-footer"><div>{active.status === 'draft' && data.invoices.some(invoice => invoice.id === active.id) && <Button variant="ghost" className="invoice-delete" onClick={() => setConfirm('delete')} disabled={saving}><Trash2 size={16} />Xóa nháp</Button>}</div><div>{editing ? <><Button onClick={() => correction ? setConfirm('correct-save') : void saveInvoice()} loading={saving}>{correction ? <Pencil size={16} /> : <FileText size={16} />}{correction ? 'Lưu điều chỉnh' : 'Lưu bản nháp'}</Button>{!correction && <Button variant="primary" onClick={() => { const problem = invoiceValidation(active); if (problem) setFormError(problem); else setConfirm('issue'); }} disabled={saving}><Send size={16} />Phát hành</Button>}</> : <>{active.status === 'draft' ? <Button variant="primary" onClick={() => { setEditing(true); setPreviewOnly(false); }}><Pencil size={16} />Sửa bản nháp</Button> : <>{paid === 0 && <Button onClick={() => setConfirm('correct-start')}><Pencil size={16} />Điều chỉnh phiếu</Button>}{remaining > 0 && <Button variant="primary" onClick={startPayment}><Banknote size={16} />Ghi nhận thanh toán</Button>}</>}</>}</div></div>
+        <div className="modal-footer invoice-editor-footer"><div>{active.status === 'draft' && data.invoices.some(invoice => invoice.id === active.id) && <Button variant="ghost" className="invoice-delete" onClick={() => setConfirm('delete')} disabled={saving}><Trash2 size={16} />Xóa nháp</Button>}</div><div><Button className="invoice-mobile-download" loading={exporting} onClick={downloadPNG}><ArrowDownToLine size={17} aria-hidden="true" />Tải ảnh</Button>{editing ? <><Button onClick={() => correction ? setConfirm('correct-save') : void saveInvoice()} loading={saving}>{correction ? <Pencil size={16} /> : <FileText size={16} />}{correction ? 'Lưu điều chỉnh' : 'Lưu bản nháp'}</Button>{!correction && <Button variant="primary" onClick={() => { const problem = invoiceValidation(active); if (problem) setFormError(problem); else setConfirm('issue'); }} disabled={saving}><Send size={16} />Phát hành</Button>}</> : <>{active.status === 'draft' ? <Button variant="primary" onClick={() => { setEditing(true); setPreviewOnly(false); }}><Pencil size={16} />Sửa bản nháp</Button> : <>{paid === 0 && <Button onClick={() => setConfirm('correct-start')}><Pencil size={16} />Điều chỉnh phiếu</Button>}{remaining > 0 && <Button variant="primary" onClick={startPayment}><Banknote size={16} />Ghi nhận thanh toán</Button>}</>}</>}</div></div>
       </>}
     </Modal>
 
     <Modal open={paymentOpen} onClose={() => setPaymentOpen(false)} title="Ghi nhận thanh toán" description={active ? `${active.snapshot.studentName} · ${active.code}` : undefined}>
       <div className="invoice-payment-balance"><span>Học phí còn lại</span><strong>{money(remaining)}</strong></div><form onSubmit={event => { event.preventDefault(); void savePayment(); }}><div className="form-grid"><Field label="Số tiền đã nhận (đ)" error={paymentError || undefined}><input autoFocus required type="number" min="1" max={remaining} step="1" value={paymentAmount} onChange={event => { setPaymentAmount(event.target.value); setPaymentError(''); }} /></Field><Field label="Ngày thanh toán"><input required type="date" value={paymentDate} onInput={event => { setPaymentDate(event.currentTarget.value); setPaymentError(''); }} onChange={event => { setPaymentDate(event.target.value); setPaymentError(''); }} /></Field><Field label="Ghi chú" className="invoice-full-field"><textarea rows={3} maxLength={20000} value={paymentNote} placeholder="Ví dụ: Phụ huynh chuyển khoản đợt 1" onChange={event => setPaymentNote(event.target.value)} /></Field></div><div className="modal-footer"><Button type="button" onClick={() => setPaymentOpen(false)}>Quay lại</Button><Button type="submit" variant="primary" loading={saving}><CheckCircle2 size={17} />Lưu thanh toán</Button></div></form>
     </Modal>
-    <Modal open={Boolean(generatedPNG)} onClose={() => setGeneratedPNG(null)} title="Ảnh hóa đơn đã sẵn sàng" description="Tải ảnh PNG hoặc nhấn giữ ảnh trên điện thoại để lưu vào thiết bị." wide>
-      {generatedPNG && <><div className="invoice-generated-meta"><span>{generatedPNG.filename}</span><small>{generatedPNG.width} × {generatedPNG.height} px · {new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(generatedPNG.bytes / 1024)} KB</small></div><div className="invoice-generated-image"><img src={generatedPNG.url} width={generatedPNG.width} height={generatedPNG.height} alt="Ảnh PNG hóa đơn hoàn chỉnh, gồm nhận xét và thông tin thanh toán" /></div><div className="modal-footer"><Button onClick={() => setGeneratedPNG(null)}>Đóng</Button><a className="btn btn-primary" href={generatedPNG.url} download={generatedPNG.filename}><ArrowDownToLine size={16} aria-hidden="true" />Tải ảnh PNG</a><a className="btn btn-secondary" href={generatedPNG.url} target="_blank" rel="noopener noreferrer">Mở ảnh<ArrowUpRight size={16} aria-hidden="true" /></a></div></>}
+    <Modal open={Boolean(generatedPNG)} onClose={() => setGeneratedPNG(null)} title="Tải ảnh học phí" description="Ảnh đã sẵn sàng. Chọn cách lưu vào thiết bị của bạn." wide>
+      {generatedPNG && <>
+        <div className="invoice-image-actions"><a className="btn btn-primary" href={generatedPNG.url} download={generatedPNG.filename}><ArrowDownToLine size={17} aria-hidden="true" />Tải ảnh về máy</a>{canShareInvoiceImage(generatedPNG.file) && <Button onClick={() => void sharePNG()} loading={sharingPNG}><Share2 size={17} aria-hidden="true" />Lưu / chia sẻ ảnh</Button>}</div>
+        <p className="invoice-image-help">Nếu ảnh chưa được lưu, hãy nhấn giữ ảnh bên dưới rồi chọn “Lưu hình ảnh”.</p>
+        {shareError && <p className="invoice-form-error" role="alert">{shareError}</p>}
+        <div className="invoice-generated-meta"><span>{generatedPNG.filename}</span><small>{generatedPNG.width} × {generatedPNG.height} px · {new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(generatedPNG.bytes / 1024)} KB</small></div>
+        <div className="invoice-generated-image"><img src={generatedPNG.url} width={generatedPNG.width} height={generatedPNG.height} alt="Ảnh PNG hóa đơn hoàn chỉnh, gồm nhận xét và thông tin thanh toán" /></div>
+        <div className="modal-footer"><Button onClick={() => setGeneratedPNG(null)}>Đóng</Button><a className="btn btn-secondary" href={generatedPNG.url} target="_blank" rel="noopener noreferrer">Mở ảnh<ArrowUpRight size={16} aria-hidden="true" /></a></div>
+      </>}
     </Modal>
     <ConfirmDialog open={Boolean(confirm)} onClose={() => setConfirm(null)} onConfirm={() => void confirmAction()} title={confirm ? confirms[confirm].title : ''} description={confirm ? confirms[confirm].description : ''} confirmLabel={confirm ? confirms[confirm].label : ''} danger={confirm === 'delete' || confirm === 'discard'} loading={saving} />
   </>;

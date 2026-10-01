@@ -47,7 +47,7 @@ function blobDataURL(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error('Không thể đọc ảnh QR.')); reader.readAsDataURL(blob); });
 }
 
-export interface GeneratedInvoicePNG { url: string; filename: string; width: number; height: number; bytes: number }
+export interface GeneratedInvoicePNG { url: string; file: File; filename: string; width: number; height: number; bytes: number }
 
 function withExportTimeout<T>(promise: Promise<T>, message: string, milliseconds = 30000): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -94,7 +94,9 @@ export async function exportInvoicePNG(node: HTMLDivElement, invoice: Invoice): 
       const bitmap = new Image(); bitmap.src = url;
       await withExportTimeout(bitmap.decode(), 'Không thể mở ảnh đã tạo. Vui lòng thử lại.');
       if (!bitmap.naturalWidth || !bitmap.naturalHeight) throw new Error('Ảnh hóa đơn không hợp lệ. Vui lòng thử lại.');
-      return { url, filename: exportInvoiceFilename(invoice), width: bitmap.naturalWidth, height: bitmap.naturalHeight, bytes: blob.size };
+      const filename = exportInvoiceFilename(invoice);
+      const file = new File([blob], filename, { type: 'image/png' });
+      return { url, file, filename, width: bitmap.naturalWidth, height: bitmap.naturalHeight, bytes: blob.size };
     } catch (error) { URL.revokeObjectURL(url); throw error; }
   } finally { stage.remove(); }
 }
