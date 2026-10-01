@@ -14,7 +14,7 @@ const INVOICE = '55555555-5555-4555-8555-555555555555';
 const ITEM = '66666666-6666-4666-8666-666666666666';
 const PAYMENT = '77777777-7777-4777-8777-777777777777';
 const now = '2026-10-01T10:00:00Z';
-await db.exec(`
+const stubSql = `
   create role anon; create role authenticated;
   create schema auth; create schema storage;
   grant usage on schema auth, storage, public to authenticated, anon;
@@ -26,8 +26,11 @@ await db.exec(`
   create function storage.foldername(name text) returns text[] language sql immutable as $$ select string_to_array(regexp_replace(name,'/[^/]+$',''),'/') $$;
   alter table storage.objects enable row level security;
   grant all on storage.objects to authenticated,anon;
-`);
-await db.exec(await readFile(new URL('../migrations/202610010001_tutorspace.sql', import.meta.url), 'utf8'));
+`;
+const baseMigration = await readFile(new URL('../migrations/202610010001_tutorspace.sql', import.meta.url), 'utf8');
+const accountMigration = await readFile(new URL('../migrations/202610010002_multi_account.sql', import.meta.url), 'utf8');
+await db.exec(stubSql);
+await db.exec(baseMigration);
 console.log('PASS SQL migration compiled and ran with Supabase auth/storage stubs');
 await db.query('insert into public.workspace_owner(singleton,user_id) values(true,$1)',[OWNER]);
 async function asUser(user, role = 'authenticated') { await db.exec(`reset role; set role ${role};`); await db.query("select set_config('request.jwt.claim.sub',$1,false)",[user]); }
@@ -134,4 +137,176 @@ const emptied=structuredClone(initial.data);
 await rejects(()=>save(emptied,6),/ISSUED_IMMUTABLE/); assert.equal(await save(emptied,6,true),7); assert.equal((await load()).data.students.length,0);
 assert.equal((await db.query('select count(*)::integer as total from public.image_assets')).rows[0].total,0); assert.deepEqual((await load()).data.assets,{});
 console.log('PASS Confirmed reset is transactional; unconfirmed issued deletion denied');
+
+// Upgrade a populated old installation, not only an empty database. All domain
+// rows, issued snapshots, private images and the revision counter must survive.
+const SCHEDULE = '88888888-8888-4888-8888-888888888888';
+const legacyData = structuredClone(imageHistory.data);
+legacyData.schedules.push({id:SCHEDULE,studentId:STUDENT,weekdays:[6],startDate:'2026-09-01',endDate:'2026-09-30',startTime:'18:00',endTime:'19:30',subject:'Toán',mode:'online',location:'',notes:'',createdAt:now,updatedAt:now});
+legacyData.sessions[0].scheduleId = SCHEDULE;
+assert.equal(await save(legacyData,7),8);
+const beforeUpgrade = await load();
+await db.exec('reset role;');
+await db.exec("update storage.buckets set public=true where id='tutorspace-private';");
+await db.exec(accountMigration);
+assert.equal((await db.query("select public from storage.buckets where id='tutorspace-private'")).rows[0].public,false);
+await asUser(OWNER);
+assert.deepEqual(await load(),beforeUpgrade);
+await db.exec('reset role;');
+assert.equal((await db.query('select user_id from public.workspace_owner')).rows[0].user_id,OWNER);
+await db.exec(accountMigration);
+await asUser(OWNER);
+assert.deepEqual(await load(),beforeUpgrade);
+await rejects(()=>db.query('select * from public.workspace_owner'),/permission denied/);
+console.log('PASS Multi-account upgrade preserves all existing owner data/revision; rerun preserves it again');
+
+await asUser(OTHER);
+const friendInitial = await load();
+assert.equal(friendInitial.revision,0);
+assert.deepEqual(friendInitial.data.students,[]);
+assert.deepEqual(friendInitial.data.invoices,[]);
+assert.deepEqual(friendInitial.data.assets,{});
+const guessedImage = structuredClone(friendInitial.data);
+guessedImage.profile.avatar = `asset:${key}`;
+await rejects(()=>save(guessedImage,0),/ASSET_REFERENCE_MISSING/);
+assert.equal((await load()).revision,0);
+console.log('PASS Unregistered second account opens an empty workspace and cannot resolve first account assets');
+
+// Import a backup with identical UUIDs under a different account. Owner-scoped
+// keys permit this, and every join/sum must still select only the caller's rows.
+const friendData = structuredClone(beforeUpgrade.data);
+friendData.profile.name = 'Gia sư bạn bè';
+friendData.profile.id = OWNER; // Supplied ownership identifiers must be ignored.
+friendData.owner_id = OWNER;
+friendData.students[0].name = 'Học sinh của bạn';
+friendData.students[0].owner_id = OWNER;
+friendData.sessions[0].endTime = '19:00';
+friendData.sessions[0].actualMinutes = 60;
+friendData.sessions[0].rate = 120000;
+friendData.sessions[0].lessonNote.content = 'Nhật ký của bạn';
+friendData.invoices[0].items[0].minutes = 60;
+friendData.invoices[0].items[0].rate = 120000;
+friendData.invoices[0].items[0].amount = 120000;
+friendData.invoices[0].snapshot.studentName = 'Học sinh của bạn';
+friendData.invoices[0].snapshot.tutorName = 'Gia sư bạn bè';
+friendData.invoices[0].comment = 'Hóa đơn của bạn';
+friendData.payments[0].amount = 50000;
+assert.equal(await save(friendData,0),1);
+const friendFirst = await load();
+assert.equal(friendFirst.data.profile.name,'Gia sư bạn bè');
+assert.equal(friendFirst.data.sessions.length,1);
+assert.equal(friendFirst.data.sessions[0].lessonNote.content,'Nhật ký của bạn');
+assert.equal(friendFirst.data.invoices[0].items.length,1);
+assert.equal(friendFirst.data.invoices[0].items[0].amount,120000);
+assert.equal(friendFirst.data.payments[0].amount,50000);
+await asUser(OWNER);
+assert.deepEqual(await load(),beforeUpgrade);
+console.log('PASS Identical imported UUIDs coexist privately; supplied owner fields cannot redirect writes');
+
+const ownerTables = ['workspace_revisions','students','teaching_schedules','teaching_sessions','lesson_notes','invoices','invoice_items','payments','image_assets'];
+for (const [signedIn,foreign] of [[OWNER,OTHER],[OTHER,OWNER]]) {
+  await asUser(signedIn);
+  for (const table of ownerTables) {
+    assert.equal((await db.query(`select * from public.${table} where owner_id=$1`,[foreign])).rows.length,0);
+    assert.ok((await db.query(`select * from public.${table} where owner_id=$1`,[signedIn])).rows.length > 0);
+    await rejects(()=>db.query(`delete from public.${table} where owner_id=$1`,[foreign]),/permission denied/);
+  }
+  for (const table of ['profiles','app_settings']) {
+    assert.equal((await db.query(`select * from public.${table} where id=$1`,[foreign])).rows.length,0);
+    assert.equal((await db.query(`select * from public.${table} where id=$1`,[signedIn])).rows.length,1);
+    await rejects(()=>db.query(`update public.${table} set id=$1 where id=$2`,[signedIn,foreign]),/permission denied/);
+  }
+}
+console.log('PASS Both accounts read only their own normalized rows; direct cross-account mutations are denied');
+
+await asUser(OTHER);
+const friendChanged = structuredClone(friendFirst.data);
+friendChanged.students[0].notes = 'Thay đổi riêng';
+assert.equal(await save(friendChanged,1),2);
+await rejects(()=>save(friendFirst.data,1),/VERSION_CONFLICT/);
+const friendOverpaid = structuredClone((await load()).data);
+friendOverpaid.payments[0].amount = 120001;
+await rejects(()=>save(friendOverpaid,2),/OVERPAYMENT/);
+assert.equal((await load()).revision,2);
+await asUser(OWNER);
+const ownerChanged = structuredClone(beforeUpgrade.data);
+ownerChanged.students[0].notes = 'Ghi chú chủ cũ';
+assert.equal(await save(ownerChanged,8),9);
+const ownerAfterOwnChange = await load();
+assert.equal(ownerAfterOwnChange.data.invoices[0].items[0].amount,270000);
+assert.equal(ownerAfterOwnChange.data.payments[0].amount,100000);
+await asUser(OTHER);
+assert.equal((await load()).data.students[0].notes,'Thay đổi riêng');
+assert.equal((await load()).revision,2);
+console.log('PASS Revisions, financial sums, issued snapshots and rollback remain independent per account');
+
+// Foreign relationships must not link an account's rows to another account,
+// even when the attacker knows a UUID that does not exist in their workspace.
+const UNIQUE_STUDENT = '99999999-9999-4999-8999-999999999999';
+await asUser(OWNER);
+const withPrivateStudent = structuredClone(ownerAfterOwnChange.data);
+withPrivateStudent.students.push({...withPrivateStudent.students[0],id:UNIQUE_STUDENT,name:'Riêng của chủ cũ'});
+assert.equal(await save(withPrivateStudent,9),10);
+const ownerPrivateState = await load();
+await asUser(OTHER);
+const foreignStudentLink = structuredClone((await load()).data);
+foreignStudentLink.sessions[0].studentId = UNIQUE_STUDENT;
+await rejects(()=>save(foreignStudentLink,2),/foreign key constraint/);
+assert.equal((await load()).revision,2);
+await asUser(OWNER);
+assert.deepEqual(await load(),ownerPrivateState);
+console.log('PASS Cross-account foreign-key attempts roll back without changing either account');
+
+await asUser(OTHER);
+await db.query("insert into storage.objects(id,bucket_id,name) values($1,'tutorspace-private',$2)",[INVOICE,`${OTHER}/qr.png`]);
+assert.equal((await db.query('select * from storage.objects')).rows.length,1);
+await rejects(()=>db.query("insert into storage.objects(id,bucket_id,name) values($1,'tutorspace-private',$2)",[SESSION,`${OWNER}/forged.png`]),/row-level security/);
+await rejects(()=>db.query("insert into storage.objects(id,bucket_id,name) values($1,'another-bucket',$2)",[SESSION,`${OTHER}/forged.png`]),/row-level security/);
+assert.equal((await db.query('delete from storage.objects where name=$1 returning id',[`${OWNER}/qr.png`])).rows.length,0);
+assert.equal((await db.query('update storage.objects set name=$1 where name=$2 returning id',[`${OTHER}/stolen.png`,`${OWNER}/qr.png`])).rows.length,0);
+await asUser(OWNER);
+assert.equal((await db.query('select name from storage.objects')).rows[0].name,`${OWNER}/qr.png`);
+assert.equal((await db.query('delete from storage.objects where name=$1 returning id',[`${OTHER}/qr.png`])).rows.length,0);
+console.log('PASS Private Storage enforces own UUID folders for reads, uploads and deletes');
+
+await asUser('', 'authenticated');
+await rejects(load,/AUTH_REQUIRED/);
+await rejects(()=>save(initial.data,0),/AUTH_REQUIRED/);
+await asUser(OWNER,'anon');
+await rejects(load,/permission denied/);
+await rejects(()=>save(initial.data,0),/permission denied/);
+await rejects(()=>db.query('select * from public.students'),/permission denied/);
+console.log('PASS RPC requires authenticated UID and denies anonymous calls even with a forged claim');
+
+await asUser(OTHER);
+await rejects(()=>save(friendInitial.data,2),/ISSUED_IMMUTABLE/);
+assert.equal(await save(friendInitial.data,2,true),3);
+const friendEmpty = await load();
+assert.deepEqual(friendEmpty.data.students,[]);
+assert.deepEqual(friendEmpty.data.assets,{});
+await asUser(OWNER);
+assert.deepEqual(await load(),ownerPrivateState);
+console.log('PASS Confirmed reset removes only the caller workspace and preserves the other account');
 await db.close();
+
+// Fresh project setup must work without ever inserting a workspace_owner row.
+const fresh = new PGlite();
+await fresh.exec(stubSql);
+await fresh.exec(baseMigration);
+await fresh.exec(accountMigration);
+assert.equal((await fresh.query('select count(*)::integer as total from public.workspace_owner')).rows[0].total,0);
+for (const user of [OWNER,OTHER]) {
+  await fresh.exec('reset role; set role authenticated;');
+  await fresh.query("select set_config('request.jwt.claim.sub',$1,false)",[user]);
+  const freshInitial = (await fresh.query('select public.workspace_load() as result')).rows[0].result;
+  assert.equal(freshInitial.revision,0);
+  assert.equal(freshInitial.data.demo,false);
+  assert.deepEqual(freshInitial.data.students,[]);
+  freshInitial.data.profile.name = user === OWNER ? 'Tài khoản A' : 'Tài khoản B';
+  assert.equal((await fresh.query('select public.workspace_save($1::jsonb,0,false) as result',[JSON.stringify(freshInitial.data)])).rows[0].result,1);
+}
+await fresh.exec('reset role;');
+assert.equal((await fresh.query('select count(*)::integer as total from public.profiles')).rows[0].total,2);
+assert.equal((await fresh.query('select count(*)::integer as total from public.workspace_owner')).rows[0].total,0);
+console.log('PASS Fresh 001 + 002 setup provisions independent accounts without manual owner registration');
+await fresh.close();

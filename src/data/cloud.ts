@@ -1,12 +1,14 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { authStorage } from './local';
+import { readAuthCallback } from './auth';
+export const initialAuthCallback = typeof window === 'undefined' ? { recovery: false, error: '' } : readAuthCallback(window.location.href);
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const configured = Boolean(url || key);
 let initializationError = configured && (!url || !key) ? 'Cấu hình Supabase chưa đầy đủ. Cần VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY.' : '';
 let client: SupabaseClient | null = null;
 if (url && key) {
-  try { client = createClient(url, key, { auth: { storage: authStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }); }
+  try { client = createClient(url, key, { auth: { storage: authStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' } }); }
   catch { initializationError = 'Địa chỉ hoặc khóa Supabase không hợp lệ. Kiểm tra file .env.local rồi khởi động lại ứng dụng.'; }
 }
 export const configurationError = initializationError;

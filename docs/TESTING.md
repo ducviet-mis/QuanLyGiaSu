@@ -6,15 +6,19 @@ Ngày kiểm tra: 01/10/2026. Môi trường: Windows, Node.js 24.19.0, trình d
 
 | Lệnh | Kết quả | Nội dung |
 |---|---|---|
-| `npm test` | 35/35 đạt, 4 tệp | Tiền học theo phút/buổi, làm tròn số nguyên VND, ngoại lệ tính phí, lịch tuần, ngày nhuận, xung đột, giữ lịch sử, hóa đơn, thanh toán, snapshot, dữ liệu sao lưu và gộp ảnh |
-| `npm run test:db` | 18/18 nhóm đạt | Migration PostgreSQL, lưu/tải bảng chuẩn hóa, RLS, tài khoản chủ, khách và tài khoản khác, khóa phiên bản, tính trùng, thanh toán vượt tiền, rollback, ảnh riêng và snapshot QR |
-| `npm run build` | Đạt | TypeScript và bản dựng production; output `dist/` |
+| `npm test` | 42/42 đạt, 5 tệp sau nâng cấp đa tài khoản | 35 kiểm tra nghiệp vụ và dữ liệu; 7 kiểm tra hỗ trợ xác thực: đăng ký, chuyển hướng email, gửi lại xác nhận, đặt lại mật khẩu và xử lý lỗi |
+| `npm run test:db` | 28/28 nhóm đạt sau nâng cấp đa tài khoản | Migration nền và nâng cấp, giữ dữ liệu cũ, kho trống cho người mới, RLS/RPC/Storage theo từng người, phiên bản độc lập, mã nhập trùng giữa hai kho, hóa đơn, rollback và ảnh riêng |
+| `npm run build` | Đạt sau nâng cấp đa tài khoản | TypeScript và bản dựng production; output `dist/` |
 
-Kiểm thử cơ sở dữ liệu sử dụng PGlite chạy PostgreSQL nhúng. Schema `auth`/`storage` và `auth.uid()` được mô phỏng rõ ràng trong chương trình kiểm tra; không kết nối hoặc sửa một dự án cloud. Các kiểm tra quyền dùng vai trò `anon`/`authenticated` và UUID chủ/tài khoản khác. Chúng không thay thế việc xác nhận cấu hình Supabase thật.
+Kiểm thử cơ sở dữ liệu sử dụng PGlite chạy PostgreSQL nhúng. Schema `auth`/`storage` và `auth.uid()` được mô phỏng rõ ràng trong chương trình kiểm tra; không kết nối hoặc sửa một dự án cloud. Các kiểm tra quyền dùng vai trò `anon`/`authenticated` và UUID của hai tài khoản độc lập. Chúng không thay thế việc xác nhận cấu hình Supabase thật.
 
-Bản dựng có cảnh báo chú thích tối ưu hóa từ Zod và dung lượng JavaScript khoảng 1 MB trước gzip (khoảng 302 KB sau gzip). Bản dựng hoàn thành, không có lỗi TypeScript. Thử trình duyệt dùng `npm run preview`; máy sandbox đã hạn chế đường dẫn khi trình tối ưu dependency của máy chủ `dev` quét ổ đĩa, nên chế độ `dev` chưa được xác nhận trong môi trường này.
+Nâng cấp đa tài khoản kiểm tra cả hai cách cài: dự án mới chạy 001 rồi 002 mà không đăng ký chủ thủ công; dự án cũ chạy 002, giữ hàng nghiệp vụ, ảnh và phiên bản của tài khoản cũ. Migration 002 chạy lại được. Hai kho nhập cùng UUID vẫn lưu/tải độc lập; tài khoản B không thấy hàng hoặc ảnh của A; khách chưa đăng nhập bị từ chối. Phiên bản, ràng buộc lịch/hóa đơn và tham chiếu ảnh được kiểm tra theo từng tài khoản.
+
+Bản dựng có cảnh báo chú thích tối ưu hóa từ Zod và dung lượng JavaScript khoảng 1,02 MB trước gzip. Bản dựng hoàn thành, không có lỗi TypeScript. Thử trình duyệt dùng `npm run preview`; máy sandbox đã hạn chế đường dẫn khi trình tối ưu dependency của máy chủ `dev` quét ổ đĩa, nên chế độ `dev` chưa được xác nhận trong môi trường này.
 
 ## Những luồng đã thực hiện qua giao diện
+
+Phần tài khoản đã được kiểm tra riêng qua giao diện production kết nối một máy chủ Auth/RPC giả lập ở địa chỉ cục bộ, không gửi email hay tạo tài khoản thật: đăng ký và xác nhận mật khẩu; chờ xác nhận email; gửi lại xác nhận từ màn hình đăng ký và đăng nhập; yêu cầu đặt lại mật khẩu; nhận liên kết khôi phục, lưu mật khẩu và quay lại đăng nhập; báo lỗi mật khẩu sai và liên kết hết hạn; đăng xuất/đổi tài khoản xóa ô tìm kiếm cũ; tải lại giữ phiên. Giao diện đăng ký được kiểm tra ở màn hình máy tính và 375 × 812, không tràn ngang và trường nhập 16 px trên điện thoại. Ảnh đối chiếu nằm tại `outputs/tutorspace-auth-desktop.png` và `outputs/tutorspace-auth-mobile.png` ở thư mục bàn giao. Máy chủ giả lập chỉ kiểm tra xử lý giao diện và SDK; khả năng cách ly dữ liệu được kiểm tra riêng bằng PostgreSQL nhúng ở trên.
 
 Tất cả dữ liệu dưới đây là dữ liệu kiểm thử trên kho IndexedDB dùng thử. Tên ngân hàng, số tài khoản và ảnh tải lên là giả lập; không có giao dịch hoặc thông tin ngân hàng thật.
 
@@ -38,13 +42,18 @@ Các ảnh minh chứng nằm cạnh thư mục source trong gói bàn giao: `tu
 
 ## Kiểm tra tiếp trên tài khoản chính thức
 
-1. Chạy migration, đặt UUID chủ, đăng nhập và thêm một học sinh/buổi học. Tải lại trang và đăng nhập trên trình duyệt thứ hai để kiểm tra lưu cloud.
-2. Upload QR thật của bạn; phát hành phiếu; thay QR hiện tại và đơn giá học sinh. Phiếu cũ phải giữ ảnh, đơn giá và thông tin trước đó.
-3. Dùng hai tab cùng phiên bản: lưu ở tab A rồi thử lưu ở tab B. Tab B phải từ chối ghi đè, tải dữ liệu mới và yêu cầu thao tác lại.
-4. Kiểm tra tài khoản khác không đọc được bảng, RPC và ảnh của chủ.
-5. Trên Chrome desktop và Safari iPhone, tải PNG rồi mở file lưu được; đối chiếu dấu tiếng Việt, mọi dòng nhận xét và ảnh QR. Kiểm tra thông báo khi ứng dụng đang mở và được cấp quyền.
-6. Xuất JSON, thử nhập tệp sai định dạng để xem từ chối. Nhập tệp hợp lệ, kiểm tra số lượng trong bước xác nhận rồi khôi phục trên kho thử riêng. Tải lại và đối chiếu toàn bộ dữ liệu.
-7. Triển khai Vercel với hai biến môi trường; kiểm tra đường dẫn trực tiếp `/students`, `/calendar`, `/invoices` và đăng nhập trên HTTPS.
+1. Chạy đúng migration theo [SUPABASE.md](SUPABASE.md): dự án mới chạy 001 rồi 002, dự án đã có 001 chỉ chạy 002. Không thêm UUID vào `workspace_owner` nữa. Nếu nâng cấp dự án cũ, đăng nhập tài khoản cũ và đối chiếu toàn bộ dữ liệu trước khi nhập thêm.
+2. Bật đăng ký, Email và xác nhận email; cấu hình Custom SMTP cùng Site URL/Redirect URLs. Đăng ký một email ngoài nhóm quản trị Supabase, kiểm tra email xác nhận, gửi lại xác nhận và đăng nhập. Kho mới phải trống. Thêm học sinh/buổi học, tải lại và đối chiếu lưu cloud.
+3. Tạo tài khoản thứ hai trên trình duyệt khác hoặc cửa sổ riêng tư. Mỗi tài khoản chỉ thấy học sinh, lịch, hóa đơn và cài đặt của mình. Chuyển tài khoản trên cùng trình duyệt không được hiển thị dữ liệu của tài khoản vừa đăng xuất.
+4. Yêu cầu đặt lại mật khẩu, mở email về `/reset-password`, đặt mật khẩu mới rồi đăng nhập. Thử liên kết hết hạn/đã dùng; giao diện phải báo lỗi và cho yêu cầu email mới.
+5. Upload QR thật của bạn; phát hành phiếu; thay QR hiện tại và đơn giá học sinh. Phiếu cũ phải giữ ảnh, đơn giá và thông tin trước đó.
+6. Dùng hai tab cùng tài khoản và phiên bản: lưu ở tab thứ nhất rồi thử lưu ở tab còn lại. Tab còn lại phải từ chối ghi đè, tải dữ liệu mới và yêu cầu thao tác lại. Tài khoản thứ hai có phiên bản độc lập.
+7. Kiểm tra tài khoản B không đọc được hàng hoặc ảnh của A; `workspace_load` chỉ trả kho B và `workspace_save` không sửa kho A. Khách chưa đăng nhập không truy cập được dữ liệu.
+8. Trên Chrome desktop và Safari iPhone, tải PNG rồi mở file lưu được; đối chiếu dấu tiếng Việt, mọi dòng nhận xét và ảnh QR. Kiểm tra thông báo khi ứng dụng đang mở và được cấp quyền.
+9. Xuất JSON, thử nhập tệp sai định dạng để xem từ chối. Nhập tệp hợp lệ, kiểm tra số lượng trong bước xác nhận rồi khôi phục trên kho thử riêng. Tải lại và đối chiếu toàn bộ dữ liệu. Kho tài khoản khác phải giữ nguyên.
+10. Triển khai Vercel với hai biến môi trường; kiểm tra đường dẫn trực tiếp `/students`, `/calendar`, `/invoices`, `/reset-password` và đăng nhập trên HTTPS.
+
+Email xác nhận, SMTP, phiên đăng nhập từ liên kết email, đặt lại mật khẩu và phân quyền trên Supabase/Vercel thật cần được thực hiện theo danh sách trên. Kết quả PGlite không chứng minh email đã được gửi hoặc dự án cloud đã cấu hình đúng.
 
 ## Các sửa lỗi từ kiểm tra
 
