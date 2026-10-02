@@ -18,7 +18,8 @@ export function lessonAmount(rate: number, minutes: number, rateType: 'hour' | '
   if (result > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('Số tiền vượt giới hạn được hỗ trợ.');
   return Number(result);
 }
-export const sessionCharge = (session: TeachingSession) => (session.billable ?? session.status === 'completed') ? lessonAmount(session.rate, sessionMinutes(session), session.rateType) : 0;
+export const isSessionBillable = (session: TeachingSession) => session.status === 'completed' && session.billable !== false;
+export const sessionCharge = (session: TeachingSession) => isSessionBillable(session) ? lessonAmount(session.rate, sessionMinutes(session), session.rateType) : 0;
 export const invoiceTotal = (invoice: Invoice) => invoice.items.reduce((sum, row) => sum + row.amount, 0) + invoice.surcharge - invoice.discount;
 export const invoicePaid = (invoice: Invoice, payments: Payment[]) => payments.filter(p => p.invoiceId === invoice.id).reduce((sum, p) => sum + p.amount, 0);
 export const invoiceRemaining = (invoice: Invoice, payments: Payment[]) => Math.max(0, invoiceTotal(invoice) - invoicePaid(invoice, payments));

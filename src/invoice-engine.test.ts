@@ -9,17 +9,39 @@ const session: TeachingSession = { id: 'session-1', studentId: student.id, sched
 function workspace(): WorkspaceData { const data = emptyWorkspace(); data.students = [{ ...student }]; data.sessions = [{ ...session }]; data.profile.name = 'Gia sư mẫu'; return data; }
 function invoice(data = workspace()): Invoice { return { id: 'invoice-1', studentId: student.id, code: 'TS-202609-001', month: '2026-09', status: 'draft', items: [{ id: 'item-1', sessionId: session.id, date: session.date, minutes: 120, rate: 150000, rateType: 'hour', amount: 300000, description: 'Toán' }], surcharge: 0, discount: 0, adjustmentNote: '', comment: '', snapshot: invoiceSnapshot(data, student.id), createdAt: now, updatedAt: now, issuedAt: null }; }
 function payment(amount: number): Payment { return { id: 'payment-1', invoiceId: 'invoice-1', amount, date: '2026-10-01', note: '', createdAt: now }; }
+const unfinishedStatuses = ['student_absent', 'teacher_absent', 'cancelled', 'scheduled', 'rescheduled'] as const;
+const unfinishedCases = unfinishedStatuses.flatMap(status => [true, null, false].map(billable => ({ status, billable })));
 
 describe('invoice eligibility and historical snapshots', () => {
-  it('counts completed sessions by default and respects explicit billability overrides', () => {
+  it('counts completed lessons and excludes completed lessons explicitly marked free', () => {
     const data = workspace();
-    data.sessions.push({ ...session, id: 'absent-billable', status: 'student_absent', billable: true }, { ...session, id: 'completed-free', billable: false }, { ...session, id: 'scheduled', status: 'scheduled' }, { ...session, id: 'other-month', date: '2026-08-30' });
-    expect(eligibleInvoiceSessions(data, student.id, '2026-09').map(item => item.id)).toEqual(['session-1', 'absent-billable']);
+    data.sessions.push({ ...session, id: 'completed-billable', billable: true }, { ...session, id: 'completed-free', billable: false }, { ...session, id: 'other-month', date: '2026-08-30' });
+    expect(eligibleInvoiceSessions(data, student.id, '2026-09').map(item => item.id)).toEqual(['session-1', 'completed-billable']);
+  });
+  it.each(unfinishedCases)('never includes $status lessons with billable=$billable', ({ status, billable }) => {
+    const data = workspace(); data.sessions = [{ ...session, status, billable }];
+    expect(eligibleInvoiceSessions(data, student.id, '2026-09')).toEqual([]);
+  });
+  it.each(unfinishedStatuses)('rejects a stale draft when a charged lesson is now %s', status => {
+    const data = workspace(); const candidate = invoice(data);
+    data.sessions[0] = { ...data.sessions[0], status, billable: true };
+    expect(issueValidation(candidate, data)).toContain('Dữ liệu buổi học đã thay đổi');
   });
   it('excludes already billed sessions while letting a correction retain its own rows', () => {
     const data = workspace(); const issued = { ...invoice(data), status: 'issued' as const, issuedAt: now }; data.invoices = [issued];
     expect(eligibleInvoiceSessions(data, student.id, '2026-09')).toHaveLength(0);
     expect(eligibleInvoiceSessions(data, student.id, '2026-09', issued.id)).toHaveLength(1);
+  });
+  it('refreshes correction eligibility from completed lessons without changing the issued snapshot', () => {
+    const data = workspace(); const issued = { ...invoice(data), status: 'issued' as const, issuedAt: now };
+    const absent = { ...session, id: 'later-absent', date: '2026-09-10', status: 'student_absent' as const, billable: true };
+    data.sessions.push(absent);
+    issued.items.push({ ...issued.items[0], id: 'item-absent', sessionId: absent.id, date: absent.date });
+    data.invoices = [issued]; const preserved = structuredClone(issued);
+
+    expect(eligibleInvoiceSessions(data, student.id, '2026-09', issued.id).map(item => item.id)).toEqual(['session-1']);
+    expect(data.invoices[0]).toEqual(preserved);
+    expect(tuitionTotal(data.invoices[0])).toBe(600000);
   });
   it('copies bank and student values into a snapshot independent of future changes', () => {
     const data = workspace(); data.settings.bankAccount = 'uploaded-by-owner'; data.settings.qrImage = 'data:image/png;base64,owner-image';

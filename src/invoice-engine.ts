@@ -1,9 +1,7 @@
 import type { Invoice, InvoiceItem, InvoiceSnapshot, Payment, TeachingSession, WorkspaceData } from './types';
-import { lessonAmount, sessionMinutes } from './domain';
+import { isSessionBillable, lessonAmount, sessionMinutes } from './domain';
 
-export function isSessionBillable(session: TeachingSession): boolean {
-  return session.billable ?? session.status === 'completed';
-}
+export { isSessionBillable } from './domain';
 
 export function billedSessionIds(invoices: Invoice[], exceptInvoiceId?: string): Set<string> {
   return new Set(invoices.filter(invoice => invoice.status === 'issued' && invoice.id !== exceptInvoiceId).flatMap(invoice => invoice.items.flatMap(item => item.sessionId ? [item.sessionId] : [])));

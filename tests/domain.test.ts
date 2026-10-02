@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { addDays, createDemoData, emptyWorkspace, invoicePaid, invoiceRemaining, invoiceStatus, invoiceTotal, lessonAmount, monthMetrics, newId, protectIssuedInvoices, sessionCharge, sessionMinutes, today, validateBackup } from '../src/domain';
+import { addDays, createDemoData, emptyWorkspace, invoicePaid, invoiceRemaining, invoiceStatus, invoiceTotal, isSessionBillable, lessonAmount, monthMetrics, monthlySeries, newId, protectIssuedInvoices, sessionCharge, sessionMinutes, today, validateBackup } from '../src/domain';
 import type { Invoice, TeachingSession } from '../src/types';
 
 function fixture() { const data = createDemoData(); data.demo = false; return data; }
@@ -14,13 +14,22 @@ describe('Exact VND tuition', () => {
     expect(() => lessonAmount(1.5, 90, 'hour')).toThrow();
     expect(() => lessonAmount(150000, -1, 'hour')).toThrow();
   });
-  it('uses actual duration and default completed-only policy, allowing explicit exceptions', () => {
+  it('uses actual duration for completed lessons and respects free completed lessons', () => {
     const { session } = invoiceFixture();
     expect(sessionMinutes({ ...session, actualMinutes: 100 })).toBe(100);
     expect(sessionCharge({ ...session, actualMinutes: 100, rate: 180000 })).toBe(300000);
     expect(sessionCharge({ ...session, status: 'student_absent', billable: null })).toBe(0);
-    expect(sessionCharge({ ...session, status: 'student_absent', billable: true, actualMinutes: 90, rate: 180000 })).toBe(270000);
+    expect(sessionCharge({ ...session, status: 'student_absent', billable: true, actualMinutes: 90, rate: 180000 })).toBe(0);
+    expect(sessionCharge({ ...session, status: 'completed', billable: true, actualMinutes: 90, rate: 180000 })).toBe(270000);
     expect(sessionCharge({ ...session, status: 'completed', billable: false })).toBe(0);
+  });
+  it.each(['student_absent', 'teacher_absent', 'cancelled', 'scheduled', 'rescheduled'] as const)('never charges %s lessons, even with a legacy billable override', status => {
+    const { session } = invoiceFixture();
+    for (const billable of [null, false, true]) {
+      const value = { ...session, status, billable };
+      expect(isSessionBillable(value)).toBe(false);
+      expect(sessionCharge(value)).toBe(0);
+    }
   });
   it('separates issued invoices, payments and remaining amounts', () => {
     const { invoice } = invoiceFixture(); const total = invoiceTotal(invoice);
@@ -73,6 +82,20 @@ describe('Backups and financial integrity', () => {
   });
 });
 describe('Calendar and metrics', () => {
+  it('reports three attended lessons at 450k instead of charging a fourth absent lesson', () => {
+    const sample = fixture(); const student = sample.students[0]; const template = sample.sessions.find(session => session.studentId === student.id)!;
+    const data = emptyWorkspace(); data.students = [student];
+    data.sessions = ['2026-09-01', '2026-09-06', '2026-09-08'].map(date => ({ ...template, id: newId(), scheduleId: null, date, status: 'completed' as const, actualMinutes: 120, rate: 150000, rateType: 'session' as const, billable: true }));
+    data.sessions.push({ ...data.sessions[0], id: newId(), date: '2026-09-13', status: 'student_absent', billable: true });
+    data.sessions.push({ ...data.sessions[0], id: newId(), date: '2026-10-01', status: 'scheduled', billable: true });
+    expect(monthMetrics(data, '2026-09')).toMatchObject({ completedSessions: 3, hours: 6, accrued: 450000 });
+    expect(monthlySeries(data, 2026)[8]).toMatchObject({ month: '2026-09', sessions: 3, hours: 6, accrued: 450000 });
+    expect(monthMetrics(data, '2026-10')).toMatchObject({ completedSessions: 0, hours: 0, accrued: 0 });
+    data.sessions[3].status = 'completed';
+    expect(monthMetrics(data, '2026-09').accrued).toBe(600000);
+    data.sessions[3].billable = false;
+    expect(monthMetrics(data, '2026-09').accrued).toBe(450000);
+  });
   it('uses Ho Chi Minh City date even across UTC midnight', () => {
     vi.useFakeTimers(); vi.setSystemTime(new Date('2026-09-30T18:01:00Z')); expect(today()).toBe('2026-10-01'); vi.useRealTimers();
   });
