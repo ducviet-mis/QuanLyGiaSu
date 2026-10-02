@@ -1,4 +1,4 @@
-import { Fragment, forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { toBlob, getFontEmbedCSS } from 'html-to-image';
 import type { Invoice } from '../types';
 import { tuitionTotal, exportInvoiceFilename } from '../invoice-engine';
@@ -21,24 +21,29 @@ export const InvoicePreview = forwardRef<HTMLDivElement, { invoice: Invoice }>(f
   const lessonDates = [...dateCounts.entries()].sort(([a], [b]) => a.localeCompare(b));
   const bankReady = snapshot.bankName || snapshot.bankAccount || snapshot.bankHolder;
   const transferNote = `Học phí ${snapshot.studentName} ${Number(month)}/${year}`;
+  const showDuration = invoice.items.some(item => item.rateType === 'hour');
   return <div ref={ref} className="invoice-paper" aria-label={`Phiếu học phí ${snapshot.studentName}, tháng ${Number(month)}/${year}`}>
-    <div className="invoice-topline"><span>{snapshot.brand || 'TutorSpace'}</span><span>THÁNG {Number(month)} / {year}</span></div>
+    <div className="invoice-topline"><span>{snapshot.brand || 'TutorSpace'}</span><span>HỌC PHÍ THÁNG {Number(month)}/{year}</span></div>
     <div className="invoice-paper-header"><div><h2>Thông báo học phí</h2><p>{snapshot.tutorName || 'Gia sư cá nhân'}</p></div><div className="invoice-code"><span>MÃ PHIẾU</span><strong>{invoice.code}</strong><span>{invoice.issuedAt ? `Phát hành ${issueDateLabel(invoice.issuedAt)}` : 'Bản xem trước'}</span></div></div>
-    <div className="invoice-student-block"><div><span>HỌC SINH</span><h3>{snapshot.studentName}</h3></div><div><span>LỚP • MÔN HỌC</span><strong>{[snapshot.grade, snapshot.subject].filter(Boolean).join(' • ') || '—'}</strong></div><div><span>KỲ HỌC PHÍ</span><strong>Tháng {Number(month)}/{year}</strong></div></div>
-    <section className="invoice-paper-section"><h3><span>01</span> Tổng hợp học phí</h3>
+    <div className="invoice-student-block"><div><span>HỌC SINH</span><h3>{snapshot.studentName}</h3></div><div><span>LỚP · MÔN HỌC</span><strong>{[snapshot.grade, snapshot.subject].filter(Boolean).join(' · ') || '—'}</strong></div></div>
+    <section className="invoice-paper-section"><h3>Tổng hợp học phí</h3>
       <div className="invoice-lesson-summary">
-        <div className="invoice-lesson-summary-top"><div><strong>{invoice.items.length} buổi học</strong>{invoice.items.some(item => item.rateType === 'hour') && <span>{duration(minutes)} tổng thời lượng</span>}</div>{commonRate && <div className="invoice-common-rate"><span>Đơn giá</span><strong>{vnd(commonRate.rate)}<small>/{commonRate.rateType === 'hour' ? 'giờ' : 'buổi'}</small></strong></div>}</div>
-        <div className="invoice-lesson-dates"><span>Ngày học</span><p>{lessonDates.map(([date, count], index) => <Fragment key={date}><span><time dateTime={date}>{date.startsWith(invoice.month + '-') ? dateLabel(date).slice(0, 5) : dateLabel(date)}</time>{count > 1 && ` (${count} buổi)`}</span>{index < lessonDates.length - 1 && ', '}</Fragment>)}</p></div>
+        <dl className={`invoice-lesson-metrics ${showDuration && commonRate ? 'invoice-lesson-metrics-three' : ''}`}>
+          <div><dt>Số buổi học</dt><dd>{invoice.items.length}<small> buổi</small></dd></div>
+          {showDuration && <div><dt>Tổng thời lượng</dt><dd className="invoice-duration">{duration(minutes)}</dd></div>}
+          {commonRate && <div><dt>Đơn giá</dt><dd className="invoice-rate">{vnd(commonRate.rate)}<small>/{commonRate.rateType === 'hour' ? 'giờ' : 'buổi'}</small></dd></div>}
+        </dl>
+        <div className="invoice-lesson-dates"><span>Ngày học</span><div>{lessonDates.length ? lessonDates.map(([date, count]) => <span className="invoice-date" key={date}><time dateTime={date}>{date.startsWith(invoice.month + '-') ? dateLabel(date).slice(0, 5) : dateLabel(date)}</time>{count > 1 && <small> × {count} buổi</small>}</span>) : <span className="invoice-no-lessons">Chưa có buổi học</span>}</div></div>
       </div>
       {(invoice.surcharge > 0 || invoice.discount > 0) && <div className="invoice-subtotal"><div><p><span>Học phí các buổi</span><strong>{vnd(invoice.items.reduce((sum, item) => sum + item.amount, 0))}</strong></p>{invoice.surcharge > 0 && <p><span>Phụ thu</span><strong>+{vnd(invoice.surcharge)}</strong></p>}{invoice.discount > 0 && <p><span>Giảm trừ</span><strong>−{vnd(invoice.discount)}</strong></p>}</div></div>}
       {invoice.adjustmentNote && <p className="invoice-adjustment">Điều chỉnh: {invoice.adjustmentNote}</p>}
       <div className="invoice-grand-total"><span>TỔNG HỌC PHÍ</span><strong>{vnd(total)}</strong></div>
     </section>
-    {invoice.comment.trim() && <section className="invoice-paper-section invoice-comment"><h3><span>02</span> Nhận xét trong tháng</h3><div className="invoice-comment-body">{invoice.comment.trim().split(/\r?\n/).map((line, index) => <p key={index} className={/^(ưu điểm|nhược điểm|góp ý|cần cải thiện|định hướng|đề xuất|nội dung cần rèn luyện)\s*:?$/iu.test(line.trim()) ? 'invoice-comment-label' : undefined}>{line || '\u00a0'}</p>)}</div></section>}
-    <section className="invoice-paper-section"><h3><span>{invoice.comment.trim() ? '03' : '02'}</span> Thông tin thanh toán</h3><div className={`invoice-bank ${snapshot.qrImage ? '' : 'invoice-bank-noqr'}`}>
-      <div>{bankReady ? <><dl><div><dt>Ngân hàng</dt><dd>{snapshot.bankName || '—'}</dd></div><div><dt>Số tài khoản</dt><dd className="invoice-account">{snapshot.bankAccount || '—'}</dd></div><div><dt>Chủ tài khoản</dt><dd>{snapshot.bankHolder || '—'}</dd></div></dl><div className="invoice-transfer"><span>Nội dung chuyển khoản</span><strong>{transferNote}</strong></div><div className="invoice-transfer-amount"><span>Số tiền chuyển khoản</span><strong>{vnd(total)}</strong></div></> : <p className="invoice-missing-bank">Vui lòng liên hệ gia sư để nhận thông tin thanh toán.</p>}</div>
+    <section className="invoice-paper-section"><h3>Thông tin thanh toán</h3><div className={`invoice-bank ${snapshot.qrImage ? '' : 'invoice-bank-noqr'}`}>
+      <div>{bankReady ? <><dl><div><dt>Ngân hàng</dt><dd>{snapshot.bankName || '—'}</dd></div><div><dt>Số tài khoản</dt><dd className="invoice-account">{snapshot.bankAccount || '—'}</dd></div><div><dt>Chủ tài khoản</dt><dd>{snapshot.bankHolder || '—'}</dd></div></dl><div className="invoice-transfer"><span>Nội dung chuyển khoản</span><strong>{transferNote}</strong></div></> : <p className="invoice-missing-bank">Vui lòng liên hệ gia sư để nhận thông tin thanh toán.</p>}</div>
       {snapshot.qrImage && <div className="invoice-qr"><img src={snapshot.qrImage} alt="Ảnh QR chuyển khoản do gia sư cung cấp" /><span>Đối chiếu số tiền trước khi chuyển</span></div>}
     </div></section>
+    {invoice.comment.trim() && <section className="invoice-paper-section invoice-comment"><h3>Nhận xét trong tháng</h3><div className="invoice-comment-body">{invoice.comment.trim().split(/\r?\n/).map((line, index) => <p key={index} className={/^(ưu điểm|nhược điểm|góp ý|cần cải thiện|định hướng|đề xuất|nội dung cần rèn luyện)\s*:?$/iu.test(line.trim()) ? 'invoice-comment-label' : undefined}>{line || '\u00a0'}</p>)}</div></section>}
     <footer className="invoice-paper-footer"><p>Cảm ơn Quý phụ huynh đã luôn đồng hành trong quá trình học tập của học sinh.</p><span>Chứng từ thông báo học phí cá nhân</span><span>{snapshot.brand || 'TutorSpace'}</span></footer>
   </div>;
 });

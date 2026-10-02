@@ -17,20 +17,144 @@
 .invoice-generated-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 15px;color:var(--text);font-size:12px;overflow-wrap:anywhere}.invoice-generated-meta>span{min-width:0}.invoice-generated-meta small{font-size:11px;color:var(--muted);flex:none}.invoice-generated-image{padding:16px;background:#e9eef3;border:1px solid #e0e8ee;border-radius:10px}.invoice-generated-image img{display:block;width:100%;height:auto;margin:0 auto;max-width:760px;box-shadow:0 5px 22px #102b4415;object-fit:contain}.invoice-generated-image+.modal-footer{position:sticky;bottom:-25px;background:var(--surface);padding-bottom:5px;z-index:1}.invoice-generated-image+.modal-footer a{min-height:44px}
 @media(max-width:760px){.invoice-generated-meta{flex-direction:column;gap:6px;font-size:11px}.invoice-generated-image{padding:8px}.invoice-generated-image+.modal-footer{bottom:-21px;justify-content:center}.invoice-generated-image+.modal-footer a{flex:1;font-size:11px}}
 
-/* The exported paper owns its colors and height so night mode never changes a bill. */
-.invoice-paper{--invoice-ink:#173047;--invoice-muted:#536779;--invoice-line:#e0e8ee;--invoice-accent:#147d96;box-sizing:border-box;width:760px;min-width:760px;padding:28px 36px 24px;background:#fff;color:var(--invoice-ink);font-family:'Be Vietnam Pro',Arial,sans-serif;font-size:12px;line-height:1.6;overflow:visible;word-wrap:break-word;font-variant-numeric:tabular-nums}.invoice-paper *{box-sizing:border-box}.invoice-paper p{margin:0}.invoice-topline{display:flex;justify-content:space-between;gap:20px;align-items:center;border-bottom:1px solid var(--invoice-line);padding-bottom:12px;color:var(--invoice-accent)}.invoice-topline>span:first-child{font-size:16px;font-weight:700;letter-spacing:-.3px;max-width:450px;overflow-wrap:anywhere}.invoice-topline>span:last-child{font-size:10px;font-weight:600;letter-spacing:1.4px;white-space:nowrap}.invoice-paper-header{display:flex;justify-content:space-between;gap:24px;align-items:center;margin:20px 0}.invoice-en-title{font-size:9px;letter-spacing:2.5px;color:var(--invoice-accent);font-weight:700;margin-bottom:10px}.invoice-paper-header h2{margin:0;font-size:27px;letter-spacing:-.8px;line-height:1.35;font-weight:700;color:var(--invoice-ink)}.invoice-paper-header p{margin-top:7px;color:var(--invoice-muted);font-size:12px;overflow-wrap:anywhere}.invoice-code{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;text-align:right}.invoice-code span{font-size:9px;color:var(--invoice-muted);letter-spacing:.15px}.invoice-code span:first-child{letter-spacing:1.1px}.invoice-code strong{font-size:12px;font-weight:600;overflow-wrap:anywhere;max-width:230px}.invoice-student-block{display:grid;grid-template-columns:1.3fr 1fr .7fr;gap:20px;padding:14px 16px;background:#f3f7fa;border-radius:8px;margin-bottom:20px}.invoice-student-block>div{min-width:0}.invoice-student-block span{display:block;color:var(--invoice-muted);font-size:10px;font-weight:500;letter-spacing:.35px;margin-bottom:6px}.invoice-student-block h3{font-size:15px;margin:0;letter-spacing:-.4px;font-weight:700;overflow-wrap:anywhere}.invoice-student-block strong{display:block;font-size:11px;line-height:1.7;overflow-wrap:anywhere}.invoice-paper-section{margin-top:20px}.invoice-paper-section>h3{display:flex;gap:11px;align-items:center;font-size:13px;letter-spacing:-.3px;margin:0 0 10px;font-weight:700}.invoice-paper-section>h3>span{font-size:9px;letter-spacing:.6px;font-weight:600;color:var(--invoice-accent);border:1px solid #d4e7ec;border-radius:5px;padding:2px 5px}.invoice-lesson-summary{padding:13px 16px;border:1px solid var(--invoice-line);border-radius:8px;margin-bottom:12px;background:#f8fafc}
-.invoice-lesson-summary-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
-.invoice-lesson-summary-top>div{display:flex;flex-direction:column;gap:3px;min-width:0}
-.invoice-lesson-summary-top>div>strong{font-size:16px;font-weight:700;letter-spacing:-.3px}
-.invoice-lesson-summary-top>div>span{font-size:10px;color:var(--invoice-muted)}
-.invoice-lesson-summary-top .invoice-common-rate{text-align:right;flex-shrink:0}
-.invoice-lesson-summary-top .invoice-common-rate strong{font-size:13px;font-weight:600;letter-spacing:0}
-.invoice-common-rate small{font-size:10px;font-weight:400;color:var(--invoice-muted);margin-left:3px}
-.invoice-lesson-dates{display:flex;gap:18px;border-top:1px solid var(--invoice-line);padding-top:9px;margin-top:9px;align-items:baseline}
-.invoice-lesson-dates>span{flex:none;font-size:10px;color:var(--invoice-muted)}
-.invoice-lesson-dates p{font-size:12px;line-height:1.7;min-width:0}
-.invoice-lesson-dates p>span{white-space:nowrap}
-.invoice-subtotal{display:flex;justify-content:flex-end;align-items:flex-start;margin:16px 0;color:var(--invoice-muted)}.invoice-subtotal>div{width:275px;flex-shrink:0}.invoice-subtotal p{display:flex;justify-content:space-between;gap:16px;font-size:10px;margin-bottom:7px}.invoice-subtotal strong{font-weight:500;color:var(--invoice-ink)}.invoice-adjustment{font-size:9px!important;color:var(--invoice-muted);line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 15px!important}.invoice-grand-total{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:13px 16px;color:var(--invoice-ink);border:1px solid #bdd8df;background:#eef7f9;border-radius:8px}.invoice-grand-total span{font-size:10px;font-weight:600;letter-spacing:1px}.invoice-grand-total strong{font-size:26px;font-weight:700;letter-spacing:-.6px;color:var(--invoice-accent)}.invoice-comment-body{font:inherit;color:var(--invoice-ink);line-height:1.7;padding:0 0 0 14px;border-left:2px solid #c8dfe5;overflow-wrap:anywhere;white-space:pre-wrap}.invoice-comment-body p{font:inherit;margin:0 0 3px;orphans:3;widows:3}.invoice-comment-body .invoice-comment-label{font-weight:600;margin:10px 0 4px;break-after:avoid}.invoice-comment-body p:first-child{margin-top:0}.invoice-edit-form textarea{font-family:"Be Vietnam Pro",Arial,sans-serif;line-height:1.7}.invoice-bank{display:grid;grid-template-columns:1fr 136px;gap:20px;align-items:start;border:1px solid var(--invoice-line);border-radius:9px;padding:15px 16px}.invoice-bank-noqr{grid-template-columns:1fr}.invoice-bank>div{min-width:0}.invoice-bank dl{margin:0;display:flex;flex-direction:column;gap:9px}.invoice-bank dl>div{display:grid;grid-template-columns:112px 1fr;gap:12px;font-size:12px;align-items:start}.invoice-bank dt{color:var(--invoice-muted)}.invoice-bank dd{margin:0;color:var(--invoice-ink);font-weight:500;overflow-wrap:anywhere;white-space:pre-wrap}.invoice-account{font-size:14px!important;letter-spacing:.6px;font-weight:700!important;line-height:1.25}.invoice-transfer{margin-top:11px;padding-top:10px;border-top:1px solid var(--invoice-line);display:flex;flex-direction:column;gap:5px}.invoice-transfer span,.invoice-transfer-amount span{font-size:9px;color:var(--invoice-muted)}.invoice-transfer strong{font-size:12px;font-weight:500;overflow-wrap:anywhere;line-height:1.8}.invoice-transfer-amount{display:flex;justify-content:space-between;gap:20px;margin-top:9px}.invoice-transfer-amount strong{color:var(--invoice-accent);font-size:12px}.invoice-qr{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}.invoice-qr img{display:block;max-width:132px;max-height:160px;width:auto;height:auto;object-fit:contain;flex-shrink:0}.invoice-qr span{text-align:center;color:var(--invoice-muted);font-size:9px;line-height:1.5;max-width:136px}.invoice-missing-bank{font-size:10px;color:var(--invoice-muted);line-height:1.8}.invoice-paper-footer{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:18px;padding-top:12px;border-top:1px solid var(--invoice-line);color:var(--invoice-muted)}.invoice-paper-footer p{grid-column:1/-1;text-align:center;font-size:10px;line-height:1.8}.invoice-paper-footer>span{font-size:8px;letter-spacing:.15px}.invoice-paper-footer>span:last-child{text-align:right;color:var(--invoice-accent);font-weight:600;max-width:300px;overflow-wrap:anywhere}
+/* Document colors and dimensions stay independent of the application theme. */
+.invoice-paper {
+  --invoice-ink: #173047;
+  --invoice-muted: #526477;
+  --invoice-line: #dee7ed;
+  --invoice-accent: #126d82;
+  --invoice-soft: #f3f7fa;
+  box-sizing: border-box;
+  width: 760px;
+  min-width: 0;
+  padding: 28px 36px 24px;
+  border-top: 4px solid var(--invoice-accent);
+  background: #fff;
+  color: var(--invoice-ink);
+  font-family: 'Be Vietnam Pro', Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.invoice-paper * { box-sizing: border-box; }
+.invoice-paper p { margin: 0; }
+.invoice-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  color: var(--invoice-accent);
+}
+.invoice-topline > span:first-child { font-size: 15px; font-weight: 700; letter-spacing: -.3px; min-width: 0; }
+.invoice-topline > span:last-child { font-size: 10px; font-weight: 600; letter-spacing: .8px; flex-shrink: 0; }
+.invoice-paper-header { display: flex; justify-content: space-between; gap: 24px; align-items: center; margin: 24px 0; }
+.invoice-paper-header > div:first-child { min-width: 0; }
+.invoice-paper-header h2 { margin: 0; font-size: 29px; letter-spacing: -.8px; line-height: 1.35; font-weight: 700; color: var(--invoice-ink); }
+.invoice-paper-header p { margin-top: 7px; color: var(--invoice-muted); font-size: 12px; }
+.invoice-code { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; min-width: 0; max-width: 210px; }
+.invoice-code span { font-size: 11px; color: var(--invoice-muted); }
+.invoice-code span:first-child { font-size: 10px; font-weight: 500; letter-spacing: 1px; }
+.invoice-code strong { font-size: 12px; font-weight: 600; }
+.invoice-student-block { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; padding: 18px 20px; background: var(--invoice-soft); border-radius: 8px; }
+.invoice-student-block > div { min-width: 0; }
+.invoice-student-block span { display: block; color: var(--invoice-muted); font-size: 10px; font-weight: 500; letter-spacing: .8px; margin-bottom: 5px; }
+.invoice-student-block h3 { font-size: 19px; line-height: 1.5; margin: 0; letter-spacing: -.4px; font-weight: 700; }
+.invoice-student-block strong { display: block; font-size: 13px; line-height: 1.7; font-weight: 600; padding-top: 3px; }
+.invoice-paper-section { margin-top: 24px; }
+.invoice-paper-section > h3 { display: flex; align-items: center; gap: 14px; font-size: 14px; letter-spacing: -.2px; margin: 0 0 12px; font-weight: 600; }
+.invoice-paper-section > h3::after { content: ''; height: 1px; flex: 1; background: var(--invoice-line); }
+.invoice-lesson-summary { padding: 16px 20px; border: 1px solid var(--invoice-line); border-radius: 8px; margin-bottom: 12px; }
+.invoice-lesson-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.invoice-lesson-metrics-three { grid-template-columns: 1fr 1.3fr 1.2fr; }
+.invoice-lesson-metrics > div { min-width: 0; }
+.invoice-lesson-metrics > div + div { padding-left: 20px; border-left: 1px solid var(--invoice-line); }
+.invoice-lesson-metrics dt { font-size: 11px; color: var(--invoice-muted); margin-bottom: 6px; }
+.invoice-lesson-metrics dd { margin: 0; font-size: 21px; line-height: 1.55; font-weight: 600; letter-spacing: -.3px; }
+.invoice-lesson-metrics dd small { font-size: 12px; font-weight: 400; color: var(--invoice-muted); letter-spacing: 0; }
+.invoice-lesson-metrics .invoice-duration, .invoice-lesson-metrics .invoice-rate { font-size: 15px; padding-top: 5px; }
+.invoice-lesson-dates { display: flex; gap: 18px; border-top: 1px solid var(--invoice-line); padding-top: 12px; margin-top: 14px; align-items: flex-start; }
+.invoice-lesson-dates > span { flex: none; font-size: 11px; color: var(--invoice-muted); padding-top: 3px; }
+.invoice-lesson-dates > div { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.invoice-date { display: inline-flex; align-items: baseline; gap: 2px; padding: 3px 8px; background: var(--invoice-soft); border-radius: 4px; font-size: 12px; }
+.invoice-date small { color: var(--invoice-muted); font-size: 10px; }
+.invoice-no-lessons { font-size: 12px; color: var(--invoice-muted); }
+.invoice-subtotal { display: flex; justify-content: flex-end; margin: 16px 0; color: var(--invoice-muted); }
+.invoice-subtotal > div { width: 320px; max-width: 100%; }
+.invoice-subtotal p { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; margin-bottom: 8px; }
+.invoice-subtotal strong { font-weight: 500; color: var(--invoice-ink); text-align: right; }
+.invoice-adjustment { font-size: 11px !important; color: var(--invoice-muted); line-height: 1.8; white-space: pre-wrap; margin: 0 0 14px !important; }
+.invoice-grand-total { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 16px 20px; color: #fff; background: var(--invoice-ink); border-radius: 8px; }
+.invoice-grand-total span { font-size: 11px; font-weight: 500; letter-spacing: .8px; }
+.invoice-grand-total strong { font-size: 29px; line-height: 1.5; font-weight: 700; letter-spacing: -.6px; text-align: right; }
+.invoice-bank { display: grid; grid-template-columns: minmax(0, 1fr) 168px; gap: 24px; align-items: center; border: 1px solid var(--invoice-line); border-radius: 8px; padding: 18px 20px; }
+.invoice-bank-noqr { grid-template-columns: 1fr; }
+.invoice-bank > div { min-width: 0; }
+.invoice-bank dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.invoice-bank dl > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; font-size: 12px; align-items: baseline; }
+.invoice-bank dt { color: var(--invoice-muted); }
+.invoice-bank dd { margin: 0; color: var(--invoice-ink); font-weight: 500; white-space: pre-wrap; }
+.invoice-bank .invoice-account { font-size: 16px; letter-spacing: .5px; font-weight: 700; }
+.invoice-transfer { margin-top: 16px; padding: 12px 14px; background: var(--invoice-soft); border-radius: 5px; display: flex; flex-direction: column; gap: 4px; }
+.invoice-transfer span { font-size: 10px; color: var(--invoice-muted); }
+.invoice-transfer strong { font-size: 12px; font-weight: 500; line-height: 1.8; }
+.invoice-qr { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.invoice-qr img { display: block; max-width: min(152px, 100%); max-height: 192px; width: auto; height: auto; object-fit: contain; flex-shrink: 0; }
+.invoice-qr span { text-align: center; color: var(--invoice-muted); font-size: 10px; line-height: 1.6; max-width: 168px; }
+.invoice-missing-bank { font-size: 12px; color: var(--invoice-muted); line-height: 1.8; }
+.invoice-comment-body { font: inherit; color: var(--invoice-ink); line-height: 1.85; padding-left: 16px; border-left: 2px solid #bdd6df; white-space: pre-wrap; }
+.invoice-comment-body p { font: inherit; margin: 0 0 6px; orphans: 3; widows: 3; }
+.invoice-comment-body .invoice-comment-label { font-weight: 600; margin: 14px 0 5px; break-after: avoid; }
+.invoice-comment-body p:first-child { margin-top: 0; }
+.invoice-edit-form textarea { font-family: 'Be Vietnam Pro', Arial, sans-serif; line-height: 1.7; }
+.invoice-paper-footer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--invoice-line); color: var(--invoice-muted); }
+.invoice-paper-footer p { grid-column: 1 / -1; text-align: center; font-size: 11px; line-height: 1.8; }
+.invoice-paper-footer > span { font-size: 10px; }
+.invoice-paper-footer > span:last-child { text-align: right; color: var(--invoice-accent); font-weight: 600; max-width: 300px; }
 
+/* Only the on-screen preview reflows. Export clones use the 760px document above. */
+.invoice-preview-scroll { container-type: inline-size; container-name: invoice-preview; }
+.invoice-preview-scroll .invoice-paper { width: 100%; max-width: 760px; }
+@container invoice-preview (max-width: 620px) {
+  .invoice-paper { padding: 24px; }
+  .invoice-paper-header { gap: 16px; }
+  .invoice-paper-header h2 { font-size: 25px; }
+  .invoice-code { max-width: 165px; }
+  .invoice-lesson-metrics > div + div { padding-left: 12px; }
+  .invoice-bank { grid-template-columns: minmax(0, 1fr) 140px; gap: 16px; }
+  .invoice-bank-noqr { grid-template-columns: 1fr; }
+  .invoice-qr img { max-width: min(132px, 100%); max-height: 168px; }
+  .invoice-bank dl > div { grid-template-columns: 92px minmax(0, 1fr); gap: 8px; }
+}
+@container invoice-preview (max-width: 460px) {
+  .invoice-paper { padding: 20px 16px; }
+  .invoice-topline { flex-direction: column; align-items: flex-start; gap: 5px; }
+  .invoice-topline > span:last-child { font-size: 10px; }
+  .invoice-paper-header { flex-direction: column; align-items: stretch; gap: 16px; margin: 20px 0; }
+  .invoice-paper-header h2 { font-size: 25px; }
+  .invoice-code { max-width: none; align-items: flex-start; text-align: left; border-top: 1px solid var(--invoice-line); padding-top: 12px; }
+  .invoice-student-block { grid-template-columns: 1fr; gap: 12px; padding: 16px; }
+  .invoice-student-block h3 { font-size: 18px; }
+  .invoice-paper-section { margin-top: 22px; }
+  .invoice-paper-section > h3 { font-size: 13px; }
+  .invoice-lesson-summary { padding: 14px; }
+  .invoice-lesson-metrics, .invoice-lesson-metrics-three { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+  .invoice-lesson-metrics > div + div { padding-left: 10px; }
+  .invoice-lesson-metrics-three > div:last-child { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--invoice-line); padding: 10px 0 0; }
+  .invoice-lesson-metrics .invoice-duration, .invoice-lesson-metrics .invoice-rate { font-size: 13px; }
+  .invoice-lesson-dates { flex-direction: column; gap: 8px; }
+  .invoice-date { font-size: 11px; }
+  .invoice-grand-total { flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 16px; }
+  .invoice-grand-total strong { font-size: 27px; text-align: left; }
+  .invoice-bank, .invoice-bank-noqr { grid-template-columns: 1fr; padding: 16px; }
+  .invoice-bank dl > div { grid-template-columns: 1fr; gap: 2px; }
+  .invoice-bank .invoice-account { font-size: 16px; }
+  .invoice-qr { border-top: 1px solid var(--invoice-line); padding-top: 16px; }
+  .invoice-qr img { max-width: min(168px, 100%); max-height: 210px; }
+  .invoice-comment-body { font-size: 13px; padding-left: 12px; }
+  .invoice-paper-footer { grid-template-columns: 1fr; gap: 8px; }
+  .invoice-paper-footer > span, .invoice-paper-footer > span:last-child { text-align: center; max-width: none; }
+}
 @media(max-width:1150px){.invoice-list-top{align-items:flex-start;flex-direction:column}.invoice-search-controls{width:100%}.invoice-search{flex:1}.invoice-summary{padding:19px;gap:12px}.invoice-summary strong{font-size:23px}.invoice-summary small{font-size:10px}.invoice-summary-icon{width:38px;height:38px}.invoice-desktop-table .badge{font-size:9px}}
 @media(max-width:760px){.invoice-summary-grid{grid-template-columns:1fr;gap:11px;margin:20px 0}.invoice-summary{align-items:center;padding:17px}.invoice-summary>div{flex:1}.invoice-summary strong{font-size:24px;line-height:1.5}.invoice-summary>div>span{font-size:12px}.invoice-summary small{font-size:11px}.invoice-summary-icon{width:45px;height:45px}.invoice-list-top{padding:20px 18px 16px}.invoice-list-top p{line-height:1.6}.invoice-search-controls{flex-wrap:wrap;gap:10px}.invoice-search{width:100%;min-width:0;flex-basis:100%;min-height:44px}.invoice-search input{font-size:16px}.invoice-search-controls>select{width:100%;min-height:44px;font-size:14px}.invoice-filter-tabs{padding:0 15px 15px;gap:3px}.invoice-filter-tabs button{min-height:44px;font-size:11px;padding:8px 10px}.invoice-desktop-table{display:none}.invoice-mobile-list{display:block;padding:0 18px}.invoice-mobile-list article{border-top:1px solid var(--border);padding:20px 0}.invoice-mobile-list article>div{display:flex;justify-content:space-between;align-items:center;gap:12px}.invoice-mobile-list article>div>strong{font-size:14px}.invoice-mobile-list article>p{font-size:11px;color:var(--muted);margin:7px 0 15px}.invoice-mobile-list article>div>span{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted)}.invoice-mobile-list article>div>span>strong{font-size:15px;color:var(--text);font-variant-numeric:tabular-nums}.invoice-mobile-list article>.btn{margin-top:17px;width:100%;min-height:44px}.invoice-list-footer{padding:16px 18px;flex-direction:column;font-size:10px;gap:8px}.invoice-editor-toolbar{flex-wrap:wrap;gap:12px;margin-bottom:17px}.invoice-editor-toolbar>div{width:100%;justify-content:space-between;gap:8px}.invoice-editor-toolbar>div:last-child>.btn{flex:1;min-height:44px;font-size:12px}.invoice-preserved{font-size:9px}.invoice-payment-overview{gap:10px;padding-bottom:20px}.invoice-payment-overview span{font-size:10px}.invoice-payment-overview strong{font-size:14px;letter-spacing:-.4px;overflow-wrap:anywhere}.invoice-preview-scroll{padding:12px;border-radius:9px}.invoice-preview-scroll .invoice-paper{margin-left:0;margin-right:0}.invoice-edit-section-title{align-items:flex-start}.invoice-edit-section-title h3{font-size:13px;line-height:1.7}.invoice-edit-section-title .btn{font-size:10px;padding:9px;white-space:nowrap}.invoice-form-description{font-size:11px;line-height:1.8}.invoice-edit-total{padding:17px}.invoice-edit-total strong{font-size:22px}.invoice-edit-form input,.invoice-edit-form textarea{font-size:16px}.invoice-edit-table td{font-size:11px}.invoice-adjustment-fields{margin-top:19px}.invoice-note-reference article .btn{min-height:44px}.invoice-editor-footer{flex-direction:column;align-items:stretch;bottom:-20px;gap:11px;padding-bottom:8px}.invoice-editor-footer>div{width:100%;justify-content:flex-end}.invoice-editor-footer>div:last-child>.btn{flex:1;min-height:44px;font-size:12px;white-space:nowrap}.invoice-editor-footer>div:first-child:empty{display:none}.invoice-editor-footer .invoice-delete{min-height:44px}.invoice-payment-balance{padding:16px}.invoice-payment-balance strong{font-size:21px}.invoice-note-reference summary{min-height:48px}.invoice-callout{padding:15px}.invoice-callout p{font-size:12px}.invoice-callout strong{font-size:12px}}
