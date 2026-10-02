@@ -1,0 +1,83 @@
+.settings-page .settings-layout { grid-template-columns: 240px minmax(0,1fr); gap: 24px; }
+.settings-page .settings-heading-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.settings-page .settings-save-status { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.settings-page .settings-save-status svg { flex-shrink: 0; color: var(--success); }
+.settings-page .settings-save-status.is-dirty { color: var(--primary); }
+.settings-page .settings-save-status.is-dirty svg { color: inherit; }
+.settings-page .settings-nav { position: sticky; top: 24px; gap: 8px; }
+.settings-page .settings-nav > button,.settings-page .settings-nav > a { font-size: 13px; line-height: 1.6; padding: 14px; min-height: 48px; }
+.settings-page .settings-nav svg { flex-shrink: 0; }
+.settings-page .settings-panel { padding: 28px; overflow: visible; }
+.settings-page .section-title h2 { font-size: 19px; line-height: 1.5; }
+.settings-page .section-title p { font-size: 14px; line-height: 1.7; max-width: 60ch; }
+.settings-page .form-grid { gap: 22px; }
+.settings-page .field { font-size: 14px; }
+.settings-page .field > small { font-size: 12px; }
+.settings-page .field input[aria-invalid=true] { border-color: var(--danger); }
+.settings-page .field input,.settings-page .field select,.settings-page .field textarea { scroll-margin-block: 24px 210px; }
+.settings-page .settings-save-actions { justify-content: space-between; gap: 18px; margin-top: 28px; padding-top: 20px; }
+.settings-page .settings-save-actions > div { flex: 1; min-width: 0; }
+.settings-page .settings-save-actions strong { font-size: 13px; font-weight: 500; }
+.settings-page .settings-save-actions p { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 4px; }
+.settings-page .settings-save-actions > .btn { min-width: 146px; min-height: 44px; }
+.settings-page .profile-edit { align-items: flex-start; }
+.settings-page .settings-avatar { flex-shrink: 0; }
+.settings-page .profile-edit > div > small { font-size: 12px; line-height: 1.6; margin-top: 10px; }
+.settings-page .qr-upload-layout { grid-template-columns: minmax(0,1fr) minmax(210px,240px); gap: 24px; align-items: start; }
+.settings-page .qr-upload-layout > div { min-width: 0; }
+.settings-page .qr-upload-layout h3 { font-size: 16px; line-height: 1.6; }
+.settings-page .qr-upload-layout .muted { font-size: 14px; }
+.settings-page .upload-box { width: 100%; padding: 24px 16px; min-height: 160px; }
+.settings-page .upload-box strong { font-size: 14px; }
+.settings-page .upload-box small { font-size: 12px; }
+.settings-page .upload-box:hover { border-color: var(--primary); background: var(--primary-soft); }
+.settings-page .qr-upload-layout .field-hint { color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 12px; }
+.settings-page .payment-preview { padding: 20px 16px; gap: 10px; }
+.settings-page .payment-preview > .eyebrow { font-size: 10px; letter-spacing: 1px; }
+.settings-page .payment-preview strong { font-size: 15px; }
+.settings-page .payment-preview > span:not(.eyebrow) { font-size: 16px; }
+.settings-page .payment-preview small { font-size: 13px; }
+.settings-page .theme-options strong { font-size: 13px; }
+.settings-page .notification-setting strong,.settings-page .backup-info strong { font-size: 14px; }
+.settings-page .notification-setting p,.settings-page .backup-info p,.settings-page .backup-cards p { font-size: 13px; }
+.settings-page .backup-cards h3 { font-size: 15px; }
+.settings-page .settings-note p,.settings-page .backup-info small { font-size: 12px; }
+
+@media (max-width: 1150px) {
+  .settings-page .settings-layout { grid-template-columns: 200px minmax(0,1fr); gap: 20px; }
+  .settings-page .qr-upload-layout { grid-template-columns: minmax(0,1fr); }
+  .settings-page .payment-preview { max-width: 360px; width: 100%; justify-self: center; }
+}
+@media (max-width: 767px) {
+  .settings-page .settings-layout { grid-template-columns: minmax(0,1fr); gap: 18px; }
+  .settings-page .settings-heading-actions { width: 100%; justify-content: space-between; gap: 10px; }
+  .settings-page .settings-save-status { font-size: 12px; }
+  .settings-page .settings-heading-actions .btn { flex-shrink: 0; }
+  .settings-page .settings-nav { position: static; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .settings-page .settings-nav > button,.settings-page .settings-nav > a { padding: 12px 10px; font-size: 12px; gap: 8px; }
+  .settings-page .settings-panel { padding: 20px 16px; }
+  .settings-page .section-title h2 { font-size: 18px; }
+  .settings-page .section-title p { font-size: 13px; }
+  .settings-page .form-grid { grid-template-columns: minmax(0,1fr); gap: 18px; }
+  .settings-page .settings-save-actions { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 5; margin: 24px -16px -20px; padding: 14px 16px; border-radius: 0 0 var(--radius) var(--radius); background: var(--surface); box-shadow: 0 -5px 16px color-mix(in srgb,var(--text) 6%,transparent); gap: 12px; }
+  .settings-page .settings-save-actions > div { flex-basis: 100%; }
+  .settings-page .settings-save-actions p { font-size: 12px; }
+  .settings-page .settings-save-actions p { display: none; }
+  .settings-page .settings-save-actions > .btn { width: 100%; min-height: 46px; }
+  .settings-page .profile-edit { gap: 14px; margin: 22px 0 26px; }
+  .settings-page .profile-edit .btn { font-size: 12px; white-space: normal; }
+  .settings-page .qr-upload-layout { padding-top: 22px; margin-top: 24px; gap: 20px; }
+  .settings-page .payment-preview { max-width: none; }
+  .settings-page .payment-preview img { width: auto; max-width: min(220px,100%); max-height: 280px; }
+  .settings-page .theme-options { gap: 8px; }
+  .settings-page .theme-options button { padding: 22px 6px 16px; min-width: 0; }
+  .settings-page .theme-options strong { font-size: 12px; line-height: 1.6; }
+  .settings-page .notification-setting { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: start; }
+  .settings-page .notification-setting > div { min-width: 0; }
+  .settings-page .notification-setting > .btn { grid-column: 1/-1; width: 100%; margin: 0; }
+  .settings-page .backup-info { align-items: flex-start; padding: 16px 12px; }
+  .settings-page .backup-info > div { min-width: 0; }
+  .settings-page .backup-cards { gap: 22px; }
+  .settings-page .backup-cards > div + div { padding-top: 22px; border-top: 1px solid var(--border); }
+  .settings-page .backup-cards .btn,.settings-page .backup-actions .btn { width: 100%; white-space: normal; }
+}

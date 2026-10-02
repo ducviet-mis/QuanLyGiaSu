@@ -1,0 +1,241 @@
+/* Shared reading rhythm and touch targets for the TutorSpace workspace. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+:root { --radius: 16px; --shadow: 0 3px 16px #0e254307; }
+body { line-height: 1.6; }
+h1, h2, h3 { line-height: 1.35; }
+.page-heading { margin-bottom: 28px; }
+.page-heading h1 { font-size: 30px; letter-spacing: -.8px; }
+.page-heading p { font-size: 14px; line-height: 1.75; max-width: 62ch; }
+.eyebrow { font-size: 11px; letter-spacing: 1.2px; }
+.btn { min-height: 44px; font-size: 13px; border-radius: 10px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 10px; }
+.btn, .icon-btn, .mobile-nav button, .more-menu a, .more-menu button { touch-action: manipulation; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.panel-heading h2 { font-size: 17px; font-weight: 600; }
+.panel-heading p { font-size: 12px; line-height: 1.65; }
+.panel-heading select { min-height: 40px; font-size: 13px; }
+.panel-heading .btn { min-height: 40px; font-size: 12px; }
+.count-pill { font-size: 12px; padding: 4px 8px; border-radius: 7px; }
+.badge { font-size: 11px; padding: 5px 8px; line-height: 1.6; border-radius: 7px; }
+.data-table { font-size: 13px; }
+.data-table th { font-size: 12px; font-weight: 500; }
+.data-table .btn { min-height: 40px; font-size: 12px; }
+.analytics-kpi { min-width: 0; }
+.analytics-kpi > strong { overflow-wrap: anywhere; }
+.tabs { gap: 6px; }
+.tab { min-height: 44px; font-size: 13px; }
+.workspace-footer { font-size: 11px; }
+.field { font-size: 13px; }
+.field > label { font-weight: 500; }
+.field > small { font-size: 12px; }
+.field-error { color: var(--danger); }
+.field [aria-invalid=true] { border-color: var(--danger); }
+.field [aria-invalid=true]:focus { outline-color: var(--danger); }
+.form-actions-sticky {
+  position: sticky;
+  bottom: -25px;
+  z-index: 2;
+  margin-bottom: -25px;
+  padding: 18px 0 25px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.modal:has(.form-actions-sticky) { scroll-padding-bottom: 90px; }
+.form-actions-sticky .btn { min-height: 44px; }
+
+/* The DOM follows the daily workflow; desktop gives the monthly view its own row. */
+.dashboard-screen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-areas: 'stats stats' 'today upcoming' 'debt debt' 'income calendar' 'quick quick';
+  gap: 24px;
+  align-items: start;
+}
+.dashboard-screen > * { min-width: 0; }
+.dashboard-today { grid-area: today; }
+.dashboard-upcoming { grid-area: upcoming; }
+.dashboard-debt { grid-area: debt; }
+.dashboard-stats { grid-area: stats; }
+.dashboard-income { grid-area: income; }
+.dashboard-calendar { grid-area: calendar; }
+.dashboard-quick { grid-area: quick; }
+.dashboard-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.dashboard-section-heading h2 { font-size: 17px; }
+.dashboard-section-heading p { margin-top: 4px; color: var(--muted); font-size: 12px; }
+.dashboard-section-heading input { max-width: 190px; min-height: 44px; }
+.dashboard-stats .kpi-grid { margin: 0; }
+.dashboard-stats .kpi-card { padding: 19px; border-radius: 14px; }
+.dashboard-stats .kpi-top { font-size: 12px; gap: 8px; }
+.dashboard-stats .kpi-value { font-size: clamp(23px, 2.15vw, 30px); white-space: normal; overflow-wrap: anywhere; line-height: 1.45; letter-spacing: -.6px; }
+.dashboard-stats .kpi-value small { font-size: 12px; white-space: nowrap; }
+.dashboard-stats .kpi-note { font-size: 11px; line-height: 1.65; }
+.dashboard-today { display: flex; flex-direction: column; align-self: stretch; }
+.dashboard-today .today-lessons { flex: 1; }
+.dashboard-screen .lesson-row { gap: 10px; }
+.dashboard-screen .lesson-time { min-width: 44px; }
+.dashboard-screen .lesson-time strong { font-size: 13px; font-weight: 600; }
+.dashboard-screen .lesson-time span { font-size: 12px; }
+.dashboard-screen .lesson-info { min-height: 44px; }
+.dashboard-screen .lesson-info strong { font-size: 14px; font-weight: 600; }
+.dashboard-screen .lesson-info > span, .dashboard-screen .lesson-info small { font-size: 12px; }
+.dashboard-screen .lesson-row > .btn { min-height: 40px; font-size: 12px; }
+.dashboard-screen .lesson-row > .badge { font-size: 11px; }
+.dashboard-screen .today-summary { font-size: 12px; padding: 14px 23px; flex-wrap: wrap; }
+.dashboard-screen .upcoming-row { min-height: 78px; gap: 12px; }
+.dashboard-screen .upcoming-row > span:nth-child(2) > strong { font-size: 13px; font-weight: 600; }
+.dashboard-screen .upcoming-row > span:nth-child(2) > small { font-size: 12px; line-height: 1.6; }
+.dashboard-screen .date-block { width: 43px; min-height: 47px; border-radius: 10px; }
+.dashboard-screen .date-block small { font-size: 10px; }
+.dashboard-screen .date-block strong { font-size: 18px; }
+.dashboard-screen .upcoming-all { font-size: 12px; min-height: 44px; }
+.dashboard-debt {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  background: var(--surface);
+}
+.dashboard-debt.has-debt { background: var(--primary-soft); border-color: color-mix(in srgb, var(--primary) 20%, var(--border)); }
+.dashboard-debt .callout-icon { height: 48px; width: 48px; border-radius: 14px; background: var(--surface); color: var(--primary); }
+.dashboard-debt-copy { flex: 1; min-width: 0; }
+.dashboard-debt-copy .eyebrow { display: block; color: var(--primary); margin-bottom: 3px; font-size: 10px; }
+.dashboard-debt-copy strong { font-size: 23px; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+.dashboard-debt-copy p { color: var(--muted); font-size: 12px; margin-top: 3px; }
+.dashboard-debt .btn { color: var(--primary); border-color: color-mix(in srgb, var(--primary) 22%, var(--border)); }
+.dashboard-screen .income-metrics { gap: 20px; justify-content: space-between; flex-wrap: wrap; }
+.dashboard-screen .income-metrics span { font-size: 12px; }
+.dashboard-screen .income-metrics strong { font-size: clamp(20px, 2vw, 25px); }
+.dashboard-screen .chart-legend { font-size: 12px; gap: 20px; }
+.dashboard-calendar .mini-calendar-head h3 { font-size: 16px; }
+.dashboard-calendar .mini-calendar-head .eyebrow { font-size: 10px; }
+.dashboard-calendar .mini-calendar-head .icon-btn { width: 40px; height: 40px; }
+.dashboard-calendar .mini-weekdays { font-size: 12px; }
+.dashboard-calendar .mini-days button { font-size: 13px; max-height: none; min-height: 38px; }
+.dashboard-calendar .mini-calendar-foot { font-size: 11px; }
+.dashboard-calendar .mini-calendar-foot .btn { font-size: 12px; min-height: 44px; }
+.dashboard-quick { margin-top: 0; gap: 12px; }
+.dashboard-quick > span { font-size: 11px; }
+.dashboard-quick .btn { font-size: 13px; }
+
+.more-menu { display: grid; gap: 8px; padding-top: 4px; }
+.more-menu > a, .more-menu > button {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px;
+  text-align: left; color: var(--text); background: var(--surface-alt);
+  border: 1px solid var(--border); border-radius: 12px;
+}
+.more-menu > a:hover, .more-menu > button:hover { background: var(--primary-soft); border-color: var(--primary); }
+.more-menu-icon { display: grid; place-items: center; color: var(--primary); width: 42px; height: 42px; flex-shrink: 0; background: var(--surface); border-radius: 11px; }
+.more-menu > a > span:nth-child(2), .more-menu > button > span:nth-child(2) { flex: 1; min-width: 0; }
+.more-menu strong { display: block; font-size: 14px; font-weight: 600; }
+.more-menu small { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; line-height: 1.6; }
+.more-menu > a > svg, .more-menu > button > svg { color: var(--muted); flex-shrink: 0; }
+
+@media (min-width: 768px) and (max-width: 1200px) {
+  .dashboard-screen { grid-template-columns: minmax(0, 1fr) 290px; gap: 20px; }
+  .dashboard-today .lesson-row > .avatar { display: none; }
+  .dashboard-today .lesson-row { flex-wrap: wrap; }
+  .dashboard-today .lesson-info { flex-basis: calc(100% - 68px); }
+  .dashboard-today .lesson-row > .badge { margin-left: 57px; }
+  .dashboard-today .lesson-row > .btn { margin-left: auto; }
+  .dashboard-today .lesson-info small { display: none; }
+}
+@media (max-width: 1000px) and (min-width: 768px) {
+  .dashboard-screen { grid-template-columns: 1fr 1fr; grid-template-areas: 'stats stats' 'today today' 'upcoming calendar' 'debt debt' 'income income' 'quick quick'; }
+}
+@media (max-width: 767px) {
+  .main-content { padding: 24px 16px calc(92px + env(safe-area-inset-bottom)); }
+  .page-heading { gap: 16px; margin-bottom: 24px; }
+  .page-heading h1 { font-size: 27px; }
+  .page-heading .eyebrow { font-size: 10px; }
+  .page-heading p { font-size: 13px; line-height: 1.75; }
+  .page-actions > .btn:only-child { margin-left: 0; width: 100%; }
+  .page-actions input[type=month] { width: 100%; min-width: 0; flex: 1 1 100%; font-size: 16px; }
+  .page-actions > input[type=month] + .btn { width: 100%; }
+  .btn { min-height: 44px; font-size: 13px; }
+  .icon-btn { width: 44px; height: 44px; }
+  .topbar-tools { gap: 2px; }
+  .panel-heading { padding: 18px 16px 14px; }
+  .panel-heading h2 { font-size: 16px; }
+  .panel-heading p { font-size: 12px; }
+  .panel-heading .btn { font-size: 12px; min-height: 44px; padding: 8px; }
+  .badge { font-size: 11px; }
+  .analytics-kpi > span { font-size: 12px; line-height: 1.6; }
+  .analytics-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analytics-kpi > strong { font-size: clamp(17px, 5.2vw, 22px); letter-spacing: -.6px; white-space: normal; overflow-wrap: anywhere; }
+  .analytics-kpi > small { font-size: 11px; line-height: 1.6; }
+  .tab { font-size: 13px; }
+  .field > small { font-size: 12px; line-height: 1.6; }
+  .modal-header p { font-size: 13px; line-height: 1.7; }
+  .modal-footer .btn { min-height: 44px; font-size: 13px; }
+  .form-actions-sticky { bottom: -21px; margin-bottom: -21px; padding: 15px 0 21px; }
+  .mobile-nav > a, .mobile-nav > button {
+    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 5px; border: 0; background: transparent;
+    padding: 8px 2px; color: var(--muted); font: inherit; font-size: 10px;
+  }
+  .mobile-nav > a.active, .mobile-nav > button.active { color: var(--primary); background: var(--primary-soft); }
+  .mobile-nav > a span, .mobile-nav > button span { white-space: nowrap; }
+  .mobile-nav > a.active::before, .mobile-nav > button.active::before { content: ''; width: 22px; height: 3px; position: absolute; top: 0; border-radius: 0 0 3px 3px; background: var(--primary); }
+  .dashboard-screen { display: flex; flex-direction: column; gap: 18px; }
+  .dashboard-screen > * { width: 100%; }
+  .dashboard-today { min-height: 0; }
+  .dashboard-screen .lesson-row { display: grid; grid-template-columns: 46px 3px minmax(0, 1fr) auto; gap: 9px; padding: 16px 0; }
+  .dashboard-screen .lesson-row > .avatar { display: none; }
+  .dashboard-screen .lesson-time { grid-column: 1; grid-row: 1; }
+  .dashboard-screen .lesson-line { grid-column: 2; grid-row: 1; }
+  .dashboard-screen .lesson-info { grid-column: 3 / -1; grid-row: 1; min-height: 44px; }
+  .dashboard-screen .lesson-info > span { margin-top: 4px; font-size: 12px; }
+  .dashboard-screen .lesson-info small { display: none; }
+  .dashboard-screen .lesson-row > .badge { grid-column: 3; grid-row: 2; justify-self: start; margin-left: 0; font-size: 11px; }
+  .dashboard-screen .lesson-row > .btn { grid-column: 4; grid-row: 2; min-height: 44px; margin-left: 0; font-size: 12px; padding: 7px 8px; }
+  .dashboard-screen .today-summary { font-size: 11px; padding: 13px 16px; gap: 8px; }
+  .dashboard-debt { padding: 18px 16px; gap: 12px; flex-wrap: wrap; }
+  .dashboard-debt .callout-icon { width: 42px; height: 42px; }
+  .dashboard-debt-copy { flex: 1 1 calc(100% - 54px); }
+  .dashboard-debt-copy strong { font-size: 22px; overflow-wrap: anywhere; }
+  .dashboard-debt .btn { margin-left: 54px; min-height: 44px; width: calc(100% - 54px); }
+  .dashboard-section-heading { flex-wrap: wrap; gap: 12px; margin: 7px 0 14px; }
+  .dashboard-section-heading h2 { font-size: 17px; }
+  .dashboard-section-heading input { max-width: none; width: 100%; font-size: 16px; }
+  .dashboard-stats .kpi-grid { gap: 12px; }
+  .dashboard-stats .kpi-card { padding: 15px 12px; }
+  .dashboard-stats .kpi-top { font-size: 12px; align-items: flex-start; }
+  .dashboard-stats .kpi-icon { width: 27px; height: 27px; flex-shrink: 0; }
+  .dashboard-stats .kpi-icon svg { width: 16px; }
+  .dashboard-stats .kpi-value { font-size: 24px; margin-top: 10px; }
+  .dashboard-stats .kpi-value small { display: block; margin-left: 0; font-size: 11px; }
+  .dashboard-stats .kpi-note { font-size: 11px; }
+  .dashboard-screen .income-metrics { padding: 0 16px 10px; gap: 12px; }
+  .dashboard-screen .income-metrics > div { flex: 1; min-width: 0; }
+  .dashboard-screen .income-metrics span { font-size: 11px; flex-wrap: wrap; }
+  .dashboard-screen .income-metrics strong { font-size: 20px; overflow-wrap: anywhere; }
+  .dashboard-screen .chart-legend { font-size: 11px; gap: 16px; }
+  .dashboard-calendar .mini-days button { min-height: 44px; }
+  .dashboard-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dashboard-quick > span { grid-column: 1 / -1; }
+  .dashboard-quick .btn { white-space: normal; font-size: 12px; }
+  .dashboard-quick .btn:last-child { grid-column: 1 / -1; }
+  .more-menu > a, .more-menu > button { padding: 13px 11px; gap: 11px; }
+}
+@media (max-width: 479px) {
+  .analytics-kpis { grid-template-columns: minmax(0, 1fr); }
+  .analytics-kpi { padding: 18px; gap: 7px; }
+  .analytics-kpi > span { min-height: 0; max-width: none; }
+  .analytics-kpi > strong { font-size: 26px; margin: 4px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+  .btn, .icon-btn, .nav-item { transition: none; }
+}

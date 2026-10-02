@@ -1,0 +1,136 @@
+.students-page .student-status-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.students-page .student-status-summary button {
+  flex: 0 1 auto;
+  min-height: 44px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: none;
+}
+.students-page .student-status-summary button span { font-size: 13px; }
+.students-page .student-status-summary strong {
+  min-width: 25px;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+  border-radius: 6px;
+  background: var(--surface-alt);
+  padding: 0 5px;
+}
+.students-page .student-status-summary button.active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+.students-page .student-status-summary button.active strong { background: var(--surface); }
+.students-page .student-toolbar { gap: 16px; }
+.students-page .search-field { max-width: 520px; min-width: 0; }
+.students-page .search-field > svg { flex-shrink: 0; }
+.students-page .search-field input { padding-left: 0; font-size: 14px; }
+.students-page .student-results-count { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.students-page .segmented-control button { min-width: 44px; min-height: 40px; }
+.students-page .student-card-heading { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; margin-bottom: 16px; }
+.students-page .student-card-identity { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.students-page .student-card-identity > div { min-width: 0; }
+.students-page .student-card-identity h2 { font-size: 17px; line-height: 1.5; overflow-wrap: anywhere; }
+.students-page .student-card-identity p { color: var(--muted); font-size: 13px; margin-top: 3px; overflow-wrap: anywhere; }
+.students-page .student-card-identity .avatar { width: 50px; height: 50px; font-size: 16px; border-radius: 13px; }
+.students-page .student-card-heading > .badge { grid-row: 2; grid-column: 1/-1; margin: 0; justify-self: start; font-size: 12px; }
+.students-page .student-card-heading > .btn { grid-column: 2; grid-row: 1; width: 44px; height: 44px; }
+.students-page .student-card-data { margin: 0 0 16px; gap: 10px 16px; }
+.students-page .student-card-next { align-items: flex-start; line-height: 1.6; }
+.students-page .student-card-next svg { flex-shrink: 0; margin-top: 2px; }
+.students-page .student-directory-table .data-table { font-size: 14px; }
+.students-page .student-directory-table .data-table th { font-size: 12px; }
+.student-profile-root .student-detail-top { padding-bottom: 22px; border-bottom: 1px solid var(--border); }
+.student-profile-root .tabs { gap: 8px; }
+.student-profile-root .tab { font-size: 13px; min-height: 44px; }
+.student-profile-root .student-detail-stats { gap: 12px; }
+.student-profile-root .student-detail-stats > div { padding: 18px; }
+.student-profile-root .student-detail-stats strong { font-size: clamp(17px,2vw,23px); line-height: 1.5; }
+.student-profile-root .student-detail-stats span { font-size: 13px; line-height: 1.6; }
+.student-profile-root .student-detail-columns .section-title { font-size: 16px; }
+.student-profile-root .profile-facts > div { font-size: 14px; line-height: 1.6; }
+.student-profile-root .data-table { font-size: 13px; }
+.student-profile-root .data-table th { font-size: 12px; }
+.student-profile-root .data-table .btn { min-height: 44px; }
+.student-profile-root .student-history-mobile { display: none; }
+.student-profile-root .student-history-card { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; padding: 16px; min-width: 0; }
+.student-profile-root .student-history-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+.student-profile-root .student-history-heading strong,.student-profile-root .student-invoice-code { font-size: 15px; font-weight: 600; }
+.student-profile-root .student-history-heading p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.student-profile-root .student-history-context { color: var(--muted); font-size: 13px; margin: 10px 0; overflow-wrap: anywhere; }
+.student-profile-root .student-history-summary { font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.student-profile-root .student-history-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--border); }
+.student-profile-root .student-history-footer > span { display: grid; gap: 4px; color: var(--muted); font-size: 12px; }
+.student-profile-root .student-history-footer strong { color: var(--text); font-size: 14px; font-variant-numeric: tabular-nums; }
+.student-profile-root .student-invoice-code { color: var(--primary); overflow-wrap: anywhere; }
+.student-profile-root .student-invoice-amounts { display: grid; gap: 10px; padding: 14px 0; margin: 0; border-top: 1px solid var(--border); }
+.student-profile-root .student-invoice-amounts > div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.student-profile-root .student-invoice-amounts dt { color: var(--muted); }
+.student-profile-root .student-invoice-amounts dd { margin: 0; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.student-profile-root .student-invoice-action { width: 100%; }
+
+@media (max-width: 767px) {
+  .students-page .student-status-summary { gap: 8px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .students-page .student-status-summary button { padding: 10px 12px; justify-content: space-between; min-width: 0; }
+  .students-page .student-status-summary button span { font-size: 12px; white-space: nowrap; }
+  .students-page .student-toolbar { gap: 10px; margin-bottom: 16px; }
+  .students-page .search-field { flex-basis: 100%; }
+  .students-page .search-field input { font-size: 16px; }
+  .students-page .student-list-controls { justify-content: space-between; width: 100%; }
+  .students-page .students-grid { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .students-page .student-card { padding: 16px; }
+  .students-page .student-card-heading { gap: 8px 10px; margin-bottom: 12px; }
+  .students-page .student-card-identity { gap: 10px; }
+  .students-page .student-card-identity h2 { font-size: 16px; }
+  .students-page .student-card-identity p { font-size: 13px; }
+  .students-page .student-card-heading > .badge { margin-left: 60px; }
+  .students-page .student-card-data { margin-bottom: 12px; font-size: 12px; }
+  .students-page .student-card-rate { padding: 10px 0; }
+  .students-page .student-card-rate strong { font-size: 16px; }
+  .students-page .student-card-next { margin-top: 12px; font-size: 12px; }
+  .students-page .student-card-link { margin-top: 10px; min-height: 32px; }
+  .students-page .student-directory-table { overflow: visible; background: transparent; border: 0; box-shadow: none; }
+  .students-page .student-directory-table table,.students-page .student-directory-table tbody { display: block; }
+  .students-page .student-directory-table thead { display: none; }
+  .students-page .student-directory-table tr { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 6px 10px; min-height: 156px; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; background: var(--surface); }
+  .students-page .student-directory-table td { border: 0; padding: 0; min-width: 0; font-size: 14px; }
+  .students-page .student-directory-table tr:hover td { background: transparent; }
+  .students-page .student-directory-table td:first-child { grid-column: 1; grid-row: 1; align-self: center; }
+  .students-page .student-directory-table .student-table-name { min-height: 44px; min-width: 0; gap: 10px; line-height: 1.5; }
+  .students-page .student-directory-table .student-table-name strong { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
+  .students-page .student-directory-table .student-directory-parent { display: none; }
+  .students-page .student-directory-table .student-directory-subject { grid-column: 1/-1; grid-row: 2; color: var(--muted); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+  .students-page .student-directory-table .student-directory-subject .table-subtext { display: inline; margin: 0; font-size: inherit; }
+  .students-page .student-directory-table .student-directory-subject .table-subtext::before { content: ' · '; }
+  .students-page .student-directory-table .student-directory-rate { grid-column: 1; grid-row: 3; align-self: stretch; display: flex; flex-wrap: wrap; align-items: center; column-gap: 3px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 13px; font-weight: 500; line-height: 1.6; }
+  .students-page .student-directory-table .student-directory-rate .table-subtext { display: inline; margin: 0; font-size: 12px; font-weight: 400; }
+  .students-page .student-directory-table .student-directory-status { grid-column: 2; grid-row: 3; align-self: stretch; display: flex; align-items: center; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border); }
+  .students-page .student-directory-table .student-directory-status .badge { font-size: 11px; }
+  .students-page .student-directory-table .student-directory-edit { grid-column: 2; grid-row: 1; }
+  .students-page .student-directory-table .student-directory-edit .btn { min-width: 44px; min-height: 44px; }
+  .student-profile-root .student-detail-top { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 12px; padding-bottom: 18px; }
+  .student-profile-root .student-detail-top > .btn { grid-column: 1/-1; width: 100%; margin: 0; }
+  .student-profile-root .student-detail-top h2 { font-size: 21px; }
+  .student-profile-root .tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; overflow: visible; }
+  .student-profile-root .tab { white-space: normal; font-size: 12px; padding: 8px; }
+  .student-profile-root .student-detail-stats { grid-template-columns: minmax(0,1fr); gap: 8px; margin-bottom: 22px; }
+  .student-profile-root .student-detail-stats > div { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 14px; }
+  .student-profile-root .student-detail-stats span { min-height: 0; margin: 0; font-size: 12px; }
+  .student-profile-root .student-detail-stats strong { font-size: 17px; text-align: right; }
+  .student-profile-root .section-title-row { flex-wrap: wrap; }
+  .student-profile-root .student-history-desktop { display: none; }
+  .student-profile-root .student-history-mobile { display: grid; gap: 12px; }
+  .student-profile-root .student-history-heading .badge { font-size: 11px; white-space: normal; }
+  .student-profile-root .journal-entry-heading { flex-wrap: wrap; }
+  .student-profile-root .student-schedule > div { align-items: flex-start; line-height: 1.6; }
+  .student-profile-root .student-schedule > div svg { flex-shrink: 0; margin-top: 3px; }
+}
