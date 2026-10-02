@@ -4,6 +4,7 @@ import { emptyWorkspace, protectIssuedInvoices, validateBackup, newId } from './
 import { configured, configurationError, supabase, fileDataUrl, validateImage, initialAuthCallback } from './data/cloud';
 import { createAuthActions, readableAuthError } from './data/auth';
 import { loadLocal, saveLocal } from './data/local';
+import { createWorkspaceLoader, needsAuthWorkspaceLoad } from './data/workspace-load';
 import { dehydrateWorkspace, hydrateWorkspace, clearImageHashCache } from './data/assets';
 import type { WorkspaceData } from './types';
 
@@ -37,23 +38,26 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [passwordRecovery, setPasswordRecovery] = useState(initialAuthCallback.recovery && !initialAuthCallback.error);
   const recoveryRef = useRef(passwordRecovery); const [authLinkError, setAuthLinkError] = useState(initialAuthCallback.error);
   const authActions = createAuthActions(supabase?.auth ?? null, () => window.location.origin);
-  const mounted = useRef(true); const generation = useRef(0);
+  const mounted = useRef(true); const loader = useRef(createWorkspaceLoader());
+  const readyRef = useRef(false);
+  const markReady = useCallback((value: boolean) => { readyRef.current = value; setReady(value); }, []);
   const setWorkspace = useCallback((next: WorkspaceData) => { dataRef.current = next; if (mounted.current) setData(next); }, []);
-  const reload = useCallback(async () => {
-    const run = ++generation.current; setLoading(true);
+  const reload = useCallback(() => loader.current.run(async (isCurrent) => {
+    if (!isCurrent()) return;
+    setLoading(!readyRef.current);
     try {
       if (configurationError) throw new Error(configurationError);
-      if (!configured) { const result = await loadLocal(); if (run !== generation.current) return; revision.current = result.revision; setWorkspace(validateBackup(result.data)); setReady(true); setError(''); return; }
+      if (!configured) { const result = await loadLocal(); if (!isCurrent()) return; revision.current = result.revision; setWorkspace(validateBackup(result.data)); markReady(true); setError(''); return; }
       if (!supabase) throw new Error('Chưa cấu hình kết nối Supabase.');
       const { data: auth, error: authError } = await supabase.auth.getSession(); if (authError) throw authError;
-      if (run !== generation.current) return;
+      if (!isCurrent()) return;
       const owner = auth.session?.user.id ?? null;
-      if (authUserRef.current !== owner) { authUserRef.current = owner; authEpoch.current++; revision.current = 0; clearImageHashCache(); setWorkspace(emptyWorkspace()); setReady(false); }
+      if (authUserRef.current !== owner) { authUserRef.current = owner; authEpoch.current++; revision.current = 0; clearImageHashCache(); setWorkspace(emptyWorkspace()); markReady(false); setLoading(Boolean(owner)); }
       setAuthUser(auth.session ? { id: auth.session.user.id, email: auth.session.user.email } : null);
-      if (!auth.session) { setWorkspace(emptyWorkspace()); setReady(false); setError(''); return; }
-      if (recoveryRef.current) { setReady(false); setError(''); return; }
+      if (!auth.session) { setWorkspace(emptyWorkspace()); markReady(false); setError(''); return; }
+      if (recoveryRef.current) { markReady(false); setError(''); return; }
       const result = await supabase.rpc('workspace_load'); if (result.error) throw result.error;
-      if (run !== generation.current) return;
+      if (!isCurrent()) return;
       revision.current = Number(result.data.revision);
       const next = validateBackup(hydrateWorkspace(result.data.data));
       if (revision.current === 0 && !next.profile.name && !next.profile.email) {
@@ -61,27 +65,38 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         next.profile.name = typeof name === 'string' ? name.trim().slice(0,100) : '';
         next.profile.email = auth.session.user.email || '';
       }
-      setWorkspace(next); setReady(true); setError('');
-    } catch (problem) { if (run === generation.current) setError(readableError(problem)); }
-    finally { if (run === generation.current && mounted.current) setLoading(false); }
-  }, [setWorkspace]);
+      setWorkspace(next); markReady(true); setError('');
+    } catch (problem) { if (isCurrent()) setError(readableError(problem)); }
+    finally { if (isCurrent() && mounted.current) setLoading(false); }
+  }), [setWorkspace, markReady]);
   useEffect(() => {
     mounted.current = true;
     const subscription = supabase?.auth.onAuthStateChange((event, session) => {
-      // Updating the recovery password must keep the form mounted so it can
-      // show success and let the user explicitly return to a fresh login.
+      // Supabase re-emits SIGNED_IN on tab focus. An unchanged identity is
+      // not a reason to fetch the workspace or unmount the current page.
       if (event === 'USER_UPDATED' && recoveryRef.current) return;
+      const owner = session?.user.id ?? null;
+      const ownerChanged = authUserRef.current !== owner;
+      if (ownerChanged || event === 'SIGNED_OUT' || event === 'PASSWORD_RECOVERY') {
+        authUserRef.current = owner; authEpoch.current++; revision.current = 0;
+        loader.current.invalidate(); clearImageHashCache();
+        setWorkspace(emptyWorkspace()); markReady(false); setError('');
+        setLoading(Boolean(owner) && event !== 'PASSWORD_RECOVERY');
+      }
+      setAuthUser(session ? { id: session.user.id, email: session.user.email } : null);
       if (event === 'PASSWORD_RECOVERY') { recoveryRef.current = true; setPasswordRecovery(true); setAuthLinkError(''); }
       if (event === 'SIGNED_OUT') { recoveryRef.current = false; setPasswordRecovery(false); }
-      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') {
-        const owner = session?.user.id ?? null;
-        if (authUserRef.current !== owner) { authUserRef.current = owner; authEpoch.current++; revision.current = 0; generation.current++; clearImageHashCache(); setWorkspace(emptyWorkspace()); setReady(false); setLoading(Boolean(owner)); setError(''); setAuthUser(session ? { id: owner!, email: session.user.email } : null); }
-        setTimeout(() => { if (mounted.current) void reload(); }, 0);
+      if (needsAuthWorkspaceLoad(event, ownerChanged, readyRef.current) && owner && !recoveryRef.current) {
+        const epoch = authEpoch.current;
+        // Leave the auth callback before asking Supabase for the session.
+        setTimeout(() => {
+          if (mounted.current && epoch === authEpoch.current && !readyRef.current && !recoveryRef.current) void reload();
+        }, 0);
       }
     });
     void reload();
-    return () => { mounted.current = false; generation.current++; subscription?.data.subscription.unsubscribe(); };
-  }, [reload]);
+    return () => { mounted.current = false; loader.current.invalidate(); subscription?.data.subscription.unsubscribe(); };
+  }, [reload, markReady, setWorkspace]);
   const update = useCallback((transform: (current: WorkspaceData) => WorkspaceData, successMessage?: string, options?: UpdateOptions): Promise<boolean> => {
     const requestedOwner = authUserRef.current; const requestedEpoch = authEpoch.current;
     const job = queue.current.then(async () => {
@@ -101,14 +116,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           revision.current = Number(result.data);
         } else revision.current = await saveLocal(next, revision.current);
         // A reload started before this commit may still carry an older revision.
-        generation.current++; setLoading(false); setWorkspace(next); setReady(true); if (successMessage) toast.success(successMessage); return true;
+        loader.current.invalidate(); setLoading(false); setWorkspace(next); markReady(true); if (successMessage) toast.success(successMessage); return true;
       } catch (problem) {
         if (configured && (requestedOwner !== authUserRef.current || requestedEpoch !== authEpoch.current)) return false;
         const message = readableError(problem); if (message.includes('Đã tải bản mới')) await reload(); setError(message); toast.error(message); return false;
       } finally { setSaving(false); }
     });
     queue.current = job.catch(() => undefined); return job;
-  }, [ready, reload, setWorkspace]);
+  }, [ready, reload, setWorkspace, markReady]);
   const signIn = async (email: string, password: string) => {
     await authActions.signIn(email, password); recoveryRef.current = false; setPasswordRecovery(false); setAuthLinkError(''); await reload();
   };
@@ -117,7 +132,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (!result.requiresConfirmation) { recoveryRef.current = false; setPasswordRecovery(false); await reload(); }
     return result;
   };
-  const signOut = async () => { if (supabase) { const result = await supabase.auth.signOut({ scope: 'local' }); if (result.error) { toast.error(readableError(result.error)); throw result.error; } if (authUserRef.current) { authUserRef.current = null; authEpoch.current++; generation.current++; } revision.current = 0; recoveryRef.current = false; setPasswordRecovery(false); setAuthLinkError(''); clearImageHashCache(); setAuthUser(null); setReady(false); setWorkspace(emptyWorkspace()); } };
+  const signOut = async () => { if (supabase) { const result = await supabase.auth.signOut({ scope: 'local' }); if (result.error) { toast.error(readableError(result.error)); throw result.error; } if (authUserRef.current) { authUserRef.current = null; authEpoch.current++; loader.current.invalidate(); } revision.current = 0; recoveryRef.current = false; setPasswordRecovery(false); setAuthLinkError(''); clearImageHashCache(); setAuthUser(null); markReady(false); setLoading(false); setError(''); setWorkspace(emptyWorkspace()); } };
   const uploadImage = async (file: File) => {
     await validateImage(file);
     if (!configured) return fileDataUrl(file);
